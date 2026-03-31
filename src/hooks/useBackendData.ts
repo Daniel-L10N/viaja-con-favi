@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API_CONFIG, apiFetch } from './api';
+import { API_CONFIG, apiFetch } from '@/lib/api';
 
 interface Destino {
   id: number;

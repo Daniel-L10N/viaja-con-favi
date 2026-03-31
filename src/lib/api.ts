@@ -1,9 +1,14 @@
 // API Configuration
 // Backend: Viaja con Favi Django API
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const API_CONFIG = {
-  // Por ahora usamos el puerto directo, después de usar Apache será: /viajaconfavi/api/
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://100.81.171.84:8001',
+  // Producción: via Apache (después de configurar /viajaconfavi/)
+  // Por ahora usamos la URL directa del servidor
+  baseUrl: isProduction 
+    ? 'https://cmxserver.curlew-vector.ts.net'
+    : 'http://100.81.171.84:8001',
   endpoints: {
     leads: '/api/leads/',
     destinos: '/api/destinos/',
