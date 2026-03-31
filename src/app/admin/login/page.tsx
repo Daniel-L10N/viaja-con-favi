@@ -27,10 +27,8 @@ export default function LoginPage() {
 
       if (response.ok) {
         const data = await response.json();
-        // Save token in localStorage and set cookie for middleware
+        // Save token in localStorage for client-side checks
         localStorage.setItem('admin_token', data.token);
-        // Also set cookie for server-side middleware
-        document.cookie = `admin_token=${data.token}; path=/; max-age=86400`;
         router.push('/admin');
       } else {
         setError('Credenciales incorrectas');
