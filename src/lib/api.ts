@@ -4,10 +4,9 @@
 const isProduction = process.env.NODE_ENV === 'production';
 
 export const API_CONFIG = {
-  // Producción: via Apache (después de configurar /viajaconfavi/)
-  // Por ahora usamos la URL directa del servidor
+  // Producción: via Apache proxy at /viajaconfavi/
   baseUrl: isProduction 
-    ? 'https://cmxserver.curlew-vector.ts.net'
+    ? 'https://cmxserver.curlew-vector.ts.net/viajaconfavi'
     : 'http://100.81.171.84:8001',
   endpoints: {
     leads: '/api/leads/',
