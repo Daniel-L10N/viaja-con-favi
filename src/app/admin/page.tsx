@@ -6,7 +6,7 @@ import { API_CONFIG, apiFetch } from '@/lib/api';
 interface Destino {
   id: number;
   pais: string;
-  bandera_emoji: string;
+  bandeira_emoji: string;
   imagen: string;
   numero_resorts: number;
   continente: string;
@@ -128,18 +128,15 @@ export default function AdminPanel() {
       {destinos.map((d) => (
         <div key={d.id} className="bg-white p-4 rounded-lg shadow flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <span className="text-2xl">{d.bandera_emoji}</span>
+            <span className="text-2xl">{d.bandeira_emoji}</span>
             <div>
               <h3 className="font-bold">{d.pais}</h3>
               <p className="text-sm text-gray-500">{d.precio_desde} - {d.numero_resorts} resorts</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => { setEditingItem(d); setIsModalOpen(true); }} className="px-3 py-1 bg-blue-500 text-white rounded">Editar</button>
-            <button onClick={() => handleToggleActive(API_CONFIG.endpoints.destinos, d.id, d.activo)} className={`px-3 py-1 rounded ${d.activo ? 'bg-green-500' : 'bg-gray-300'}`}>
-              {d.activo ? 'Activo' : 'Inactivo'}
-            </button>
-          </div>
+          <button onClick={() => handleToggleActive(API_CONFIG.endpoints.destinos, d.id, d.activo)} className={`px-3 py-1 rounded ${d.activo ? 'bg-green-500' : 'bg-gray-300'}`}>
+            {d.activo ? 'Activo' : 'Inactivo'}
+          </button>
         </div>
       ))}
     </div>
@@ -154,12 +151,9 @@ export default function AdminPanel() {
             <p className="text-gray-500">{p.subtitulo}</p>
             <p className="text-gold font-bold">${p.precio} ({p.mensualidad}/mes)</p>
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => { setEditingItem(p); setIsModalOpen(true); }} className="px-3 py-1 bg-blue-500 text-white rounded">Editar</button>
-            <button onClick={() => handleToggleActive(API_CONFIG.endpoints.planes, p.id, p.activo)} className={`px-3 py-1 rounded ${p.activo ? 'bg-green-500' : 'bg-gray-300'}`}>
-              {p.activo ? 'Activo' : 'Inactivo'}
-            </button>
-          </div>
+          <button onClick={() => handleToggleActive(API_CONFIG.endpoints.planes, p.id, p.activo)} className={`px-3 py-1 rounded ${p.activo ? 'bg-green-500' : 'bg-gray-300'}`}>
+            {p.activo ? 'Activo' : 'Inactivo'}
+          </button>
         </div>
       ))}
     </div>
@@ -196,12 +190,9 @@ export default function AdminPanel() {
             <h3 className="font-bold">{g.titulo}</h3>
             <p className="text-gray-500">{g.descripcion.substring(0, 60)}...</p>
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => { setEditingItem(g); setIsModalOpen(true); }} className="px-3 py-1 bg-blue-500 text-white rounded">Editar</button>
-            <button onClick={() => handleToggleActive(API_CONFIG.endpoints.garantias, g.id, g.activo)} className={`px-3 py-1 rounded ${g.activo ? 'bg-green-500' : 'bg-gray-300'}`}>
-              {g.activo ? 'Activo' : 'Inactivo'}
-            </button>
-          </div>
+          <button onClick={() => handleToggleActive(API_CONFIG.endpoints.garantias, g.id, g.activo)} className={`px-3 py-1 rounded ${g.activo ? 'bg-green-500' : 'bg-gray-300'}`}>
+            {g.activo ? 'Activo' : 'Inactivo'}
+          </button>
         </div>
       ))}
     </div>
