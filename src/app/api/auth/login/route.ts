@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://100.81.171.84:8001';
+const API_URL = 'https://cmxserver.curlew-vector.ts.net/viajaconfavi';
 
 export async function POST(request: NextRequest) {
   try {
