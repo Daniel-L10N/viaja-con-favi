@@ -18,8 +18,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Authenticate against Django backend
-      const response = await fetch(`${API_URL}/api/auth/login/`, {
+      // Authenticate through Next.js API route (avoids mixed content)
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
