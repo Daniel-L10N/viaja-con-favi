@@ -20,12 +20,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(data, { status: response.status });
     }
 
-    return NextResponse.json(data, {
-      status: response.status,
-      headers: {
-        'Set-Cookie': `admin_token=${data.token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400`,
-      },
+    const response = NextResponse.json(data);
+    response.cookies.set('admin_token', data.token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 86400,
+      path: '/',
     });
+    return response;
   } catch {
     return NextResponse.json(
       { error: 'Error de conexión' },
