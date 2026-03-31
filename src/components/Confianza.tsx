@@ -54,8 +54,8 @@ export default function Confianza() {
             Viaja con Favi transmite confianza
           </h2>
           <p className="text-white/70 max-w-2xl mx-auto text-lg">
-            Más de 50,000 viajeros han vivido experiencias unforgettable con nosotros.
-            Esto es lo que dicen nuestros clientes.
+            Miles de viajeros han vivido experiencias unforgettable con Viaja con Favi.
+            Esto es lo que dicen nuestros miembros.
           </p>
         </motion.div>
 

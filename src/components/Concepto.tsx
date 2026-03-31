@@ -1,13 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Globe, Percent, CreditCard, Sparkles, ArrowRight, Check } from "lucide-react";
+import { Globe, Percent, CreditCard, ArrowRight, Check, Users, Gift } from "lucide-react";
 
 const benefits = [
   {
     icon: Globe,
-    title: "26 Países",
-    description: "Acceso a destinos de lujo en 26 países alrededor del mundo",
+    title: "100+ Giras Mundiales",
+    description: "Acceso a destinos exclusivos en los 5 continentes",
   },
   {
     icon: Percent,
@@ -20,20 +20,13 @@ const benefits = [
     description: "Tarifas de agente de viajes directo, sin intermediarios",
   },
   {
-    icon: Sparkles,
-    title: "Experiencias Únicas",
-    description: "Upgrade automático y beneficios adicionales en tu reserva",
+    icon: Users,
+    title: "Tu Membresía es Gratis",
+    description: "Refiere 3 amigos y tu mensualidad desaparece",
   },
 ];
 
 export default function Concepto() {
-  const priceComparison = [
-    { label: "Precio público", tradicional: "$3,500", favi: "$1,050", savings: "70%" },
-    { label: "5 noches hotel 5★", tradicional: "$2,800", favi: "$980", savings: "65%" },
-    { label: "Paquete todo incluido", tradicional: "$4,200", favi: "$1,260", savings: "70%" },
-    { label: "Vuelo + Hotel", tradicional: "$5,500", favi: "$1,925", savings: "65%" },
-  ];
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -59,14 +52,14 @@ export default function Concepto() {
           transition={{ duration: 0.6 }}
         >
           <span className="text-gold font-semibold text-sm uppercase tracking-wider">
-            El Modelo Travorium
+            ¿Cómo Funciona?
           </span>
           <h2 className="font-heading text-4xl md:text-5xl font-bold text-ocean mt-2 mb-4">
-            ¿Cómo Funciona?
+            El Club Privado de Viajes
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            Accede a precios exclusivos de mayorista através de nuestra comunidad.
-            Lo que otros pagan caro, tú lo obtienes al mejor precio.
+            Viaja con Favi es un club exclusivo que te da acceso a precios de mayorista 
+            y la oportunidad de que tu membresía sea completamente gratuita mediante referidos.
           </p>
         </motion.div>
 
@@ -95,7 +88,7 @@ export default function Concepto() {
           ))}
         </motion.div>
 
-        {/* Price Comparison */}
+        {/* How It Works - Referral */}
         <motion.div
           className="bg-ocean rounded-3xl p-8 md:p-12 overflow-hidden"
           initial={{ opacity: 0, y: 30 }}
@@ -104,49 +97,56 @@ export default function Concepto() {
           transition={{ duration: 0.8 }}
         >
           <div className="text-center mb-8">
+            <Gift className="w-16 h-16 text-gold mx-auto mb-4" />
             <h3 className="font-heading text-3xl md:text-4xl font-bold text-white mb-2">
-              Compara y Ahorra
+              ¿Cómo obtener tu membresía gratis?
             </h3>
             <p className="text-white/70">
-              El mismo viaje, una fracción del precio
+              Es simple: refiere amigos y familia, ytu mensualidad desaparece
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            {/* Header */}
-            <div className="hidden md:grid grid-cols-4 gap-4 text-white/60 text-sm font-medium pb-2 border-b border-white/20">
-              <div>Tipo de Reserva</div>
-              <div className="text-right">Precio Público</div>
-              <div className="text-right">Precio Favi</div>
-              <div className="text-right">¡Ahorras!</div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Step 1 */}
+            <div className="text-center p-6 bg-white/5 rounded-2xl">
+              <div className="w-12 h-12 bg-gold rounded-full flex items-center justify-center mx-auto mb-4 text-ocean font-bold text-xl">
+                1
+              </div>
+              <h4 className="text-white font-bold mb-2">Únete al Club</h4>
+              <p className="text-white/60 text-sm">
+                Elige tu membresía Titanium o VIP Platinum y comienza a acumular puntos
+              </p>
             </div>
 
-            {/* Rows */}
-            {priceComparison.map((row, index) => (
-              <div
-                key={index}
-                className="grid md:grid-cols-4 gap-4 md:gap-2 items-center py-4 border-b border-white/10"
-              >
-                <div className="text-white font-medium">{row.label}</div>
-                <div className="text-white/60 line-through text-right md:text-left">
-                  {row.tradicional}
-                </div>
-                <div className="text-gold font-bold text-xl text-right md:text-left">
-                  {row.favi}
-                </div>
-                <div className="bg-green-500/20 text-green-400 font-bold text-center py-1 rounded-full text-sm">
-                  {row.savings}
-                </div>
+            {/* Step 2 */}
+            <div className="text-center p-6 bg-white/5 rounded-2xl">
+              <div className="w-12 h-12 bg-gold rounded-full flex items-center justify-center mx-auto mb-4 text-ocean font-bold text-xl">
+                2
               </div>
-            ))}
+              <h4 className="text-white font-bold mb-2">Comparte con 3</h4>
+              <p className="text-white/60 text-sm">
+                Recomienda Viaja con Favi a 3 amigos o familiares
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="text-center p-6 bg-white/5 rounded-2xl">
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
+                ✓
+              </div>
+              <h4 className="text-green-400 font-bold mb-2">¡Membresía Gratis!</h4>
+              <p className="text-white/60 text-sm">
+                Mantienes puntos, mantenés tus viajes, eliminás el costo mensual
+              </p>
+            </div>
           </div>
 
           <div className="text-center mt-8">
             <a
-              href="#footer"
+              href="#membresia"
               className="btn-primary inline-flex items-center gap-2"
             >
-              <span>¡Quiero estos precios!</span>
+              <span>¡Quiero comenzar ahora!</span>
               <ArrowRight className="w-5 h-5" />
             </a>
           </div>
@@ -161,10 +161,10 @@ export default function Concepto() {
           transition={{ delay: 0.3 }}
         >
           {[
-            "IATA Member",
-            "ASTA Verified",
-            "SSL Secure",
-            "24/7 Support",
+            "Precios de Mayorista",
+            "Asistencia 24/7",
+            "100+ Destinos",
+            "Comunidad VIP",
           ].map((badge, index) => (
             <div
               key={index}

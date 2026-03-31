@@ -37,11 +37,11 @@ export default function Galeria() {
             Destinos Exclusivos
           </span>
           <h2 className="font-heading text-4xl md:text-5xl font-bold text-ocean mt-2 mb-4">
-            Top 26 Países
+            Viaja a los 5 Continentes
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            Explora los destinos más prestigiosos del mundo. Haz clic en cada uno
-            para descubrir los beneficios exclusivos que incluye tu viaje.
+            Más de 100 Giras Mundiales y Getaways disponibles. 
+            Explora los destinos más prestigiosos del mundo.
           </p>
         </motion.div>
 

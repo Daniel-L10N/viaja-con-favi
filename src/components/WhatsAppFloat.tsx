@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { buildWhatsAppLink } from "@/lib/utils";
 
-const WHATSAPP_NUMBER = "5491112345678"; // Ejemplo: número de Argentina
-const DEFAULT_MESSAGE = "¡Hola! Quiero más información sobre los viajes de lujo con Favi";
+const WHATSAPP_NUMBER = "525616376826";
+const DEFAULT_MESSAGE = "Hola Favi, quiero información sobre cómo viajar gratis con el club";
 
 export default function WhatsAppFloat() {
   const whatsappLink = buildWhatsAppLink(WHATSAPP_NUMBER, DEFAULT_MESSAGE);

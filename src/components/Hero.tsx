@@ -1,11 +1,11 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { ChevronDown, Star } from "lucide-react";
+import { ChevronDown, Globe, Gift } from "lucide-react";
 import { buildWhatsAppLink } from "@/lib/utils";
 
-const WHATSAPP_NUMBER = "5491112345678";
-const CTA_MESSAGE = "¡Hola! Quiero unirme a la comunidad de Viaja con Favi";
+const WHATSAPP_NUMBER = "525616376826";
+const CTA_MESSAGE = "Hola Favi, quiero información sobre cómo viajar gratis con el club";
 
 export default function Hero() {
   const whatsappLink = buildWhatsAppLink(WHATSAPP_NUMBER, CTA_MESSAGE);
@@ -47,8 +47,8 @@ export default function Hero() {
             transform: "scale(1.1)",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-ocean/70 via-ocean/50 to-ocean/80" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ocean/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-ocean/80 via-ocean/60 to-ocean/90" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ocean/70 to-transparent" />
       </div>
 
       {/* Content */}
@@ -63,15 +63,11 @@ export default function Hero() {
             variants={itemVariants}
             className="flex items-center justify-center gap-2 mb-4"
           >
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className="w-5 h-5 text-gold fill-gold"
-              />
-            ))}
-            <span className="text-white/80 ml-2 text-sm font-medium">
-              Experiencias de Lujo Verificadas
+            <Gift className="w-6 h-6 text-gold" />
+            <span className="text-gold font-semibold text-sm uppercase tracking-wider">
+              Club de Viajes Privado
             </span>
+            <Gift className="w-6 h-6 text-gold" />
           </motion.div>
 
           <motion.h1
@@ -84,10 +80,18 @@ export default function Hero() {
 
           <motion.p
             variants={itemVariants}
-            className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto font-body"
+            className="text-xl md:text-2xl text-white/90 mb-4 max-w-4xl mx-auto font-body"
           >
-            Experiencias de <span className="text-gold font-semibold">5 Estrellas</span> a{" "}
-            <span className="text-gold font-semibold">Precios de Mayorista</span>
+            El Club Privado que te permite viajar como millonario,{" "}
+            <span className="text-gold font-bold">pagando como mayorista</span>
+          </motion.p>
+
+          <motion.p
+            variants={itemVariants}
+            className="text-lg md:text-xl text-white/80 mb-8 max-w-3xl mx-auto font-body flex items-center justify-center gap-2"
+          >
+            <Globe className="w-5 h-5 text-gold" />
+            Accede a más de <span className="text-gold font-bold">100 Giras Mundiales</span> y Getaways en los 5 continentes
           </motion.p>
 
           <motion.div
@@ -100,14 +104,14 @@ export default function Hero() {
               rel="noopener noreferrer"
               className="btn-primary text-lg flex items-center gap-3"
             >
-              <span>¡Unirme a la Comunidad!</span>
+              <span>¡Quiero Mi Membresía Gratis!</span>
               <span className="text-2xl">→</span>
             </a>
             <a
-              href="#concepto"
+              href="#membresia"
               className="text-white/80 hover:text-white font-medium underline underline-offset-4 transition-colors"
             >
-              Descubrir cómo funciona
+              Ver planes
             </a>
           </motion.div>
 
@@ -117,10 +121,10 @@ export default function Hero() {
             className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto"
           >
             {[
-              { number: "26", label: "Países" },
-              { number: "2,000+", label: "Resorts" },
-              { number: "70%", label: "Ahorro" },
-              { number: "50K+", label: "Viajeros" },
+              { number: "100+", label: "Giras Mundiales" },
+              { number: "5", label: "Continentes" },
+              { number: "70%", label: "Ahorro Promedio" },
+              { number: "¡GRATIS!", label: "Con 3 Referidos" },
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="text-3xl md:text-4xl font-bold text-gold font-heading">
