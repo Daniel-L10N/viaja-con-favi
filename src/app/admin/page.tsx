@@ -69,9 +69,8 @@ export default function AdminPanel() {
   const [garantias, setGarantias] = useState<Garantia[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingItem, setEditingItem] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadData();
   }, [activeTab]);
