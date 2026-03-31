@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Send, Phone, Mail, MessageCircle, CheckCircle } from "lucide-react";
 import { buildWhatsAppLink } from "@/lib/utils";
+import { submitLead } from "@/lib/api";
 
 const WHATSAPP_NUMBER = "525616376826";
 const WHATSAPP_MESSAGE = "Hola Favi, quiero información sobre cómo viajar gratis con el club";
@@ -23,11 +24,25 @@ export default function Footer() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    setSubmitted(true);
+    setLoading(true);
+    try {
+      await submitLead({
+        nombre: formData.name,
+        email: formData.email,
+        telefono: formData.phone,
+        mensaje: formData.message,
+        plan_interes: 'informacion',
+      });
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Error submitting lead:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (
@@ -220,10 +235,11 @@ export default function Footer() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full btn-primary flex items-center justify-center gap-2"
+                  disabled={loading}
+                  className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Send className="w-5 h-5" />
-                  <span>Enviar Mensaje</span>
+                  <span>{loading ? 'Enviando...' : 'Enviar Mensaje'}</span>
                 </button>
                 <p className="text-white/50 text-xs text-center">
                   * Al enviar, aceptas nuestros términos y política de privacidad
