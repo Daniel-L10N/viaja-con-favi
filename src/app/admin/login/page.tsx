@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://100.81.171.84:8001';
+// API calls go through Next.js API route to avoid mixed content issues
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
