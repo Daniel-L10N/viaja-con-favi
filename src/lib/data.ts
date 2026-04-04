@@ -1,76 +1,72 @@
 import type { BlogPost, Oferta } from './types';
-import { apiFetch, API_CONFIG, normalizeBlogPost, normalizeOferta } from './api';
 
-type OfertaPayload = Partial<Oferta> & {
-  cliente?: number | string;
-  cliente_id?: number | string;
-  created_at?: string;
-  status?: 'publicada' | 'borrador' | 'archivada';
-};
+const API_BASE = 'http://127.0.0.1:8000';
 
-type BlogPayload = Partial<BlogPost> & {
-  cliente?: number | string;
-  cliente_id?: number | string;
-  created_at?: string;
-  lectura_minutos?: number | string;
-  status?: 'publicada' | 'borrador' | 'archivada';
-};
-
-function extractList<T>(payload: unknown): T[] {
-  if (Array.isArray(payload)) return payload as T[];
-  if (payload && typeof payload === 'object') {
-    const results = (payload as { results?: unknown; data?: unknown }).results;
-    if (Array.isArray(results)) return results as T[];
-
-    const data = (payload as { results?: unknown; data?: unknown }).data;
-    if (Array.isArray(data)) return data as T[];
-  }
-  return [];
-}
-
-function isPublicStatus(status?: string) {
-  return !status || status === 'publicada';
+async function fetchAPI(endpoint: string) {
+  const res = await fetch(`${API_BASE}${endpoint}`, { 
+    cache: 'no-store',
+    next: { revalidate: 0 }
+  });
+  if (!res.ok) throw new Error(`API Error: ${res.status}`);
+  return res.json();
 }
 
 export async function getOfertas(): Promise<Oferta[]> {
-  const payload = await apiFetch<unknown>(API_CONFIG.endpoints.ofertasCliente);
-  return extractList<OfertaPayload>(payload)
-    .map(normalizeOferta)
-    .filter((oferta) => isPublicStatus(oferta.status));
-}
-
-export async function getOfertaBySlug(slug: string): Promise<Oferta | undefined> {
   try {
-    const payload = await apiFetch<OfertaPayload>(`${API_CONFIG.endpoints.ofertasCliente}${slug}/`);
-    const oferta = normalizeOferta(payload);
-    return isPublicStatus(oferta.status) ? oferta : undefined;
-  } catch {
-    const ofertas = await getOfertas();
-    return ofertas.find((oferta) => oferta.id === slug);
+    const data = await fetchAPI('/api/paquetes/');
+    return data
+      .filter((p: any) => p.disponible)
+      .map((p: any) => ({
+        id: String(p.id),
+        titulo: p.titulo,
+        descripcion: p.descripcion,
+        precio: Number(p.precio),
+        imagen: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+        destino: p.destino_nombre,
+        incluye: p.incluye,
+        duracion: `${p.duracion_dias} días`,
+        fechaPublicacion: p.created_at,
+        destacada: p.destacado,
+        status: 'publicada',
+      }));
+  } catch (e) {
+    console.error('getOfertas error:', e);
+    return [];
   }
 }
 
 export async function getOfertasDestacadas(): Promise<Oferta[]> {
   const ofertas = await getOfertas();
-  return ofertas.filter((oferta) => oferta.destacada);
+  return ofertas.filter((o) => o.destacada);
 }
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
-  const payload = await apiFetch<unknown>(API_CONFIG.endpoints.blogCliente);
-  return extractList<BlogPayload>(payload)
-    .map(normalizeBlogPost)
-    .filter((post) => isPublicStatus(post.status));
+  try {
+    const data = await fetchAPI('/api/destinos/');
+    return data
+      .filter((d: any) => d.activo)
+      .map((d: any) => ({
+        id: String(d.id),
+        titulo: d.pais,
+        slug: d.codigo_pais,
+        excerpt: d.descripcion?.slice(0, 150) || '',
+        contenido: d.descripcion || '',
+        imagen: d.imagen || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+        autor: 'Viaja con Favi',
+        tags: [],
+        lectura: 5,
+        fechaPublicacion: d.created_at,
+        status: 'publicada',
+      }));
+  } catch (e) {
+    console.error('getBlogPosts error:', e);
+    return [];
+  }
 }
 
 export async function getBlogPost(slug: string): Promise<BlogPost | undefined> {
-  try {
-    const payload = await apiFetch<BlogPayload>(`${API_CONFIG.endpoints.blogCliente}${slug}/`);
-    const post = normalizeBlogPost(payload);
-    return isPublicStatus(post.status) ? post : undefined;
-  } catch {
-    const posts = await getBlogPosts();
-    return posts.find((post) => post.slug === slug);
-  }
+  const posts = await getBlogPosts();
+  return posts.find(p => p.slug === slug || p.id === slug);
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
@@ -80,6 +76,11 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefi
 export async function getRecientesBlog(limit: number = 3): Promise<BlogPost[]> {
   const posts = await getBlogPosts();
   return posts.slice(0, limit);
+}
+
+export async function getOfertaBySlug(slug: string): Promise<Oferta | undefined> {
+  const ofertas = await getOfertas();
+  return ofertas.find(o => o.id === slug);
 }
 
 export type { Oferta, BlogPost } from './types';
