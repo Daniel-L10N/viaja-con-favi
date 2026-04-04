@@ -59,7 +59,7 @@ interface Lead {
   created_at: string;
 }
 
-type TabType = 'destinos' | 'planes' | 'testimonios' | 'garantias' | 'leads';
+type TabType = 'dashboard' | 'ofertas' | 'blog' | 'destinos' | 'planes' | 'testimonios' | 'garantias' | 'leads' | 'config';
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<TabType>('destinos');
@@ -72,6 +72,7 @@ export default function AdminPanel() {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     loadData();
   }, [activeTab]);
 

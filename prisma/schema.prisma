@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Oferta {
+  id            String   @id @default(cuid())
+  titulo        String
+  descripcion   String
+  precio        Int
+  imagen        String
+  destino       String
+  incluye       String
+  duracion      String
+  destacada     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model BlogPost {
+  id              String   @id @default(cuid())
+  titulo          String
+  slug            String   @unique
+  excerpt         String
+  contenido       String
+  imagen          String
+  autor           String
+  tags            String
+  lectura         Int
+  fechaPublicacion String  @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Lead {
+  id              String   @id @default(cuid())
+  nombre          String
+  email           String
+  telefono        String
+  destinoInteres  String
+  mensaje         String?
+  status          String   @default("nuevo")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Config {
+  id    String @id @default("site")
+  value String
+}

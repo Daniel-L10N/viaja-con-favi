@@ -34,3 +34,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# atl (agent toolbox)
+.atl/
+
+/src/generated/prisma
