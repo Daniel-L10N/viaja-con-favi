@@ -1,26 +1,70 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Package, MapPin, FileText, TrendingUp, Plus, Eye, Clock } from 'lucide-react';
+import { getClienteBlogs, getClienteOfertas } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Mi Dashboard | Viaja con Favi',
   description: 'Resumen de tu actividad y estadísticas.',
 };
 
-const stats = [
-  { label: 'Ofertas Publicadas', value: '5', icon: Package, color: 'bg-blue-500' },
-  { label: 'Visitas Totales', value: '1,234', icon: Eye, color: 'bg-green-500' },
-  { label: 'Publicaciones Blog', value: '3', icon: FileText, color: 'bg-purple-500' },
-  { label: 'Este Mes', value: '12', icon: TrendingUp, color: 'bg-amber-500' },
-];
+interface DashboardPageProps {
+  searchParams?: Promise<{ cliente_id?: string }>;
+}
 
-const recentActivity = [
-  { type: 'oferta', title: 'Paris - Estancia Romántica', date: 'Hace 2 días', status: 'publicada' },
-  { type: 'blog', title: '10 razones para visitar Bali', date: 'Hace 1 semana', status: 'publicada' },
-  { type: 'oferta', title: 'Dubai - Fin de Año', date: 'Hace 2 semanas', status: 'borrador' },
-];
+function formatRelativeDate(value?: string) {
+  if (!value) return 'Sin fecha';
 
-export default function DashboardPage() {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Sin fecha';
+
+  return new Intl.RelativeTimeFormat('es', { numeric: 'auto' }).format(
+    Math.round((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+    'day'
+  );
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const resolvedSearchParams = (await searchParams) || {};
+  const clienteId = resolvedSearchParams.cliente_id || '1';
+
+  const [ofertas, posts] = await Promise.all([
+    getClienteOfertas(clienteId),
+    getClienteBlogs(clienteId),
+  ]);
+
+  const ofertasPublicadas = ofertas.filter((oferta) => oferta.status === 'publicada').length;
+  const blogPublicados = posts.filter((post) => post.status === 'publicada').length;
+  const visitasTotales = ofertas.reduce((total, oferta) => total + (oferta.visitas || 0), 0);
+  const publicacionesEsteMes = [...ofertas, ...posts].filter((item) => {
+    const sourceDate = 'fechaPublicacion' in item ? item.fechaPublicacion : undefined;
+    if (!sourceDate) return false;
+    const date = new Date(sourceDate);
+    const now = new Date();
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  }).length;
+
+  const stats = [
+    { label: 'Ofertas Publicadas', value: String(ofertasPublicadas), icon: Package, color: 'bg-blue-500' },
+    { label: 'Visitas Totales', value: String(visitasTotales), icon: Eye, color: 'bg-green-500' },
+    { label: 'Publicaciones Blog', value: String(blogPublicados), icon: FileText, color: 'bg-purple-500' },
+    { label: 'Este Mes', value: String(publicacionesEsteMes), icon: TrendingUp, color: 'bg-amber-500' },
+  ];
+
+  const recentActivity = [...ofertas, ...posts]
+    .sort((a, b) => {
+      const first = new Date(a.fechaPublicacion || 0).getTime();
+      const second = new Date(b.fechaPublicacion || 0).getTime();
+      return second - first;
+    })
+    .slice(0, 5)
+    .map((item) => ({
+      type: 'slug' in item ? 'blog' : 'oferta',
+      title: item.titulo,
+      date: formatRelativeDate(item.fechaPublicacion),
+      status: item.status || 'borrador',
+    }));
+
   return (
     <div>
       <div className="mb-8">
@@ -80,24 +124,32 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Actividad Reciente</h2>
           <div className="space-y-4">
-            {recentActivity.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">{item.title}</p>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="w-4 h-4" />
-                    <span>{item.date}</span>
+            {recentActivity.length > 0 ? (
+              recentActivity.map((item, index) => (
+                <div key={`${item.type}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{item.title}</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Clock className="w-4 h-4" />
+                      <span>{item.date}</span>
+                    </div>
                   </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    item.status === 'publicada'
+                      ? 'bg-green-100 text-green-700'
+                      : item.status === 'archivada'
+                      ? 'bg-gray-100 text-gray-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {item.status}
+                  </span>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  item.status === 'publicada' 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {item.status}
-                </span>
+              ))
+            ) : (
+              <div className="rounded-lg bg-gray-50 p-6 text-center text-sm text-gray-500">
+                No hay actividad reciente para este cliente.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

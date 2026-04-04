@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Upload, MapPin, DollarSign, Clock, CheckCircle, X } from 'lucide-react';
+import { saveOferta } from '@/lib/api';
+
+const DEFAULT_CLIENTE_ID = '1';
 
 export default function NuevaOfertaPage() {
   const router = useRouter();
@@ -18,11 +21,25 @@ export default function NuevaOfertaPage() {
     destacada: false,
   });
   const [newIncluye, setNewIncluye] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Saving oferta:', formData);
-    router.push('/dashboard/ofertas');
+    setSaving(true);
+
+    try {
+      await saveOferta({
+        ...formData,
+        cliente: Number(DEFAULT_CLIENTE_ID),
+        precio: Number(formData.precio),
+        status: 'publicada',
+      });
+      router.push('/dashboard/ofertas');
+    } catch (error) {
+      console.error('Error saving oferta:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const addIncluye = () => {
@@ -214,9 +231,10 @@ export default function NuevaOfertaPage() {
           <div className="flex gap-4">
             <button
               type="submit"
+              disabled={saving}
               className="flex-1 bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 transition-colors font-medium"
             >
-              Publicar Oferta
+              {saving ? 'Guardando...' : 'Publicar Oferta'}
             </button>
             <button
               type="button"

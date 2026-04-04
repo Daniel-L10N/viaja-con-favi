@@ -1,5 +1,6 @@
 export interface Oferta {
   id: string;
+  cliente_id?: string;
   titulo: string;
   descripcion: string;
   precio: number;
@@ -9,10 +10,13 @@ export interface Oferta {
   duracion: string;
   fechaPublicacion?: string;
   destacada: boolean;
+  status?: 'publicada' | 'borrador' | 'archivada';
+  visitas?: number;
 }
 
 export interface BlogPost {
   id: string;
+  cliente_id?: string;
   titulo: string;
   slug: string;
   excerpt: string;
@@ -22,6 +26,7 @@ export interface BlogPost {
   tags: string | string[];
   lectura: number;
   fechaPublicacion: string;
+  status?: 'publicada' | 'borrador' | 'archivada';
 }
 
 export interface Lead {
