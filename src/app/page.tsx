@@ -1,20 +1,53 @@
+import { Metadata } from 'next';
 import Hero from "@/components/Hero";
 import Concepto from "@/components/Concepto";
 import Confianza from "@/components/Confianza";
 import Membresia from "@/components/Membresia";
+import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { getOfertasDestacadas, getRecientesBlog } from "@/lib/data";
+import { faqSchema } from "@/lib/seo";
 import OfertaCard from "@/components/OfertaCard";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: 'Viaja con Favi | Viajes de Lujo a Precios de Mayorista',
+  description: 'Accede a destinos de lujo en 26+ países con descuentos exclusivos. Viajes 5 estrellas, experiencias únicas, precios de mayorista. ¡Únete hoy!',
+  openGraph: {
+    title: 'Viaja con Favi | Viajes de Lujo a Precios de Mayorista',
+    description: 'Viajes 5 estrellas a precios de mayorista. ¡Únete a la comunidad!',
+    type: 'website',
+    locale: 'es_ES',
+    url: 'https://viajaconfavi.com',
+  },
+};
 
 export default async function Home() {
   const ofertasDestacadas = await getOfertasDestacadas();
   const postsRecientes = await getRecientesBlog(3);
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://viajaconfavi.com"
+      }
+    ]
+  };
+
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      
       <Hero />
       <Concepto />
       
@@ -42,11 +75,13 @@ export default async function Home() {
       <Confianza />
       <Membresia />
       
+      <FAQ items={faqSchema} />
+      
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">
-              Ultimas del Blog
+              Últimas del Blog
             </h2>
             <Link 
               href="/blog" 
