@@ -1,40 +1,38 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, FileText, Eye, EyeOff } from 'lucide-react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
-interface Destino {
+interface BlogPost {
   id: number;
-  pais: string;
-  codigo_pais: string;
-  bandera_emoji: string;
-  imagen: string;
-  descripcion: string;
-  activo: boolean;
-  numero_resorts: number;
-  continente: string;
-  comida: string;
-  transfers: string;
-  precio_desde: string;
-  extras: string[];
+  titulo: string;
+  slug: string;
+  excerpt: string;
+  contenido: string;
+  imagen: string | null;
+  autor: string;
+  tags: string[];
+  lectura_minutos: number;
+  status: string;
+  created_at: string;
 }
 
 export default function BlogAdmin() {
-  const [posts, setPosts] = useState<Destino[]>([]);
+  const [items, setItems] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editando, setEditando] = useState<Partial<Destino> | null>(null);
+  const [editando, setEditando] = useState<Partial<BlogPost> | null>(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState<number | null>(null);
 
-  const cargarPosts = async () => {
+  const cargar = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/destinos/`);
+      const res = await fetch(`${API_BASE}/api/blog/`);
       const data = await res.json();
-      setPosts(data);
+      setItems(data);
     } catch (e) {
       console.error('Error:', e);
     } finally {
@@ -43,37 +41,35 @@ export default function BlogAdmin() {
   };
 
   useEffect(() => {
-    cargarPosts();
+    cargar();
   }, []);
 
   const abrirNuevo = () => {
     setEditando({
-      pais: '',
-      codigo_pais: '',
-      bandera_emoji: '🌍',
-      imagen: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
-      descripcion: '',
-      activo: true,
-      numero_resorts: 0,
-      continente: 'europa',
-      comida: 'Internacional',
-      transfers: 'Privado',
-      precio_desde: '999'
+      titulo: '',
+      slug: '',
+      excerpt: '',
+      contenido: '',
+      imagen: '',
+      autor: 'Admin',
+      tags: [],
+      lectura_minutos: 5,
+      status: 'borrador'
     });
     setMostrarModal(true);
   };
 
-  const abrirEditar = (post: Destino) => {
-    setEditando({ ...post });
+  const abrirEditar = (item: BlogPost) => {
+    setEditando({ ...item });
     setMostrarModal(true);
   };
 
   const eliminar = async (id: number) => {
-    if (!confirm('¿Eliminar este destino?')) return;
+    if (!confirm(`¿Eliminar el post #${id}?`)) return;
     setEliminando(id);
     try {
-      const res = await fetch(`${API_BASE}/api/destinos/${id}/`, { method: 'DELETE' });
-      if (res.ok) cargarPosts();
+      await fetch(`${API_BASE}/api/blog/${id}/`, { method: 'DELETE' });
+      cargar();
     } catch (e) {
       console.error(e);
     } finally {
@@ -82,41 +78,36 @@ export default function BlogAdmin() {
   };
 
   const guardar = async () => {
-    if (!editando?.pais || !editando?.codigo_pais) return;
+    if (!editando?.titulo || !editando?.slug) return;
     
     setGuardando(true);
     const payload = {
-      pais: editando.pais,
-      codigo_pais: editando.codigo_pais.toUpperCase(),
-      bandera_emoji: editando.bandera_emoji || '🌍',
-      imagen: editando.imagen || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
-      descripcion: editando.descripcion || '',
-      activo: editando.activo ?? true,
-      numero_resorts: editando.numero_resorts || 0,
-      continente: editando.continente || 'europa',
-      comida: editando.comida || 'Internacional',
-      transfers: editando.transfers || 'Privado',
-      extras: editando.extras || [],
-      precio_desde: editando.precio_desde || '999'
+      titulo: editando.titulo,
+      slug: editando.slug.toLowerCase().replace(/\s+/g, '-'),
+      excerpt: editando.excerpt || '',
+      contenido: editando.contenido || '',
+      imagen: editando.imagen || null,
+      autor: editando.autor || 'Admin',
+      tags: editando.tags || [],
+      lectura_minutos: editando.lectura_minutos || 5,
+      status: editando.status || 'borrador'
     };
 
     try {
       const method = editando.id ? 'PUT' : 'POST';
       const url = editando.id 
-        ? `${API_BASE}/api/destinos/${editando.id}/`
-        : `${API_BASE}/api/destinos/`;
+        ? `${API_BASE}/api/blog/${editando.id}/`
+        : `${API_BASE}/api/blog/`;
       
-      const res = await fetch(url, {
+      await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       
-      if (res.ok) {
-        setMostrarModal(false);
-        setEditando(null);
-        cargarPosts();
-      }
+      setMostrarModal(false);
+      setEditando(null);
+      cargar();
     } catch (e) {
       console.error(e);
     } finally {
@@ -124,61 +115,83 @@ export default function BlogAdmin() {
     }
   };
 
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   return (
-    <div>
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Gestión de Destinos (Blog)</h2>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Blog</h1>
+          <p className="text-gray-500 text-sm">Gestiona los artículos del blog</p>
+        </div>
         <button
           onClick={abrirNuevo}
-          className="flex items-center gap-2 bg-amber-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-amber-600"
+          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
         >
-          <Plus className="w-5 h-5" />
-          Nuevo Destino
+          <Plus className="w-4 h-4" />
+          Nuevo Post
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-8">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-amber-500" />
+        <div className="text-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-green-600" />
+          <p className="text-gray-500 mt-2">Cargando...</p>
         </div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No hay destinos. Crea uno nuevo.
+      ) : items.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg border">
+          <FileText className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+          <p className="text-gray-500">No hay posts. Crea uno nuevo.</p>
         </div>
       ) : (
         <div className="grid gap-4">
-          {posts.map((post) => (
-            <div key={post.id} className="bg-white rounded-xl p-4 shadow flex gap-4 items-center">
-              <div className="text-4xl">{post.bandera_emoji}</div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900">{post.pais}</h3>
-                <p className="text-sm text-gray-500">Código: {post.codigo_pais} · Continente: {post.continente}</p>
-                <p className="text-sm text-gray-600 mt-1">{post.descripcion?.slice(0, 100)}...</p>
-                <div className="flex gap-2 mt-2">
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">{post.numero_resorts} resorts</span>
-                  {post.activo ? (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Activo</span>
+          {items.map((item) => (
+            <div key={item.id} className="bg-white rounded-lg border p-4 flex gap-4 items-start">
+              <div className="w-24 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                {item.imagen ? (
+                  <img src={item.imagen} alt={item.titulo} className="w-full h-full object-cover rounded-lg" />
+                ) : (
+                  <FileText className="w-8 h-8 text-gray-300" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 truncate">{item.titulo}</h3>
+                <p className="text-sm text-gray-500">/{item.slug}</p>
+                <p className="text-sm text-gray-600 truncate mt-1">{item.excerpt}</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-xs text-gray-500">{item.lectura_minutos} min lectura</span>
+                  <span className="text-xs text-gray-500">{formatDate(item.created_at)}</span>
+                  {item.status === 'publicado' ? (
+                    <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">Publicado</span>
                   ) : (
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Inactivo</span>
+                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs">Borrador</span>
                   )}
                 </div>
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => abrirEditar(post)}
-                  className="p-2 text-gray-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg"
+                  onClick={() => abrirEditar(item)}
+                  className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded"
+                  title="Editar"
                 >
-                  <Pencil className="w-5 h-5" />
+                  <Pencil className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => eliminar(post.id)}
-                  disabled={eliminando === post.id}
-                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                  onClick={() => eliminar(item.id)}
+                  disabled={eliminando === item.id}
+                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
+                  title="Eliminar"
                 >
-                  {eliminando === post.id ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                  {eliminando === item.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4" />
                   )}
                 </button>
               </div>
@@ -189,161 +202,131 @@ export default function BlogAdmin() {
 
       {mostrarModal && editando && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-6">
-              {editando.id ? 'Editar Destino' : 'Nuevo Destino'}
-            </h3>
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-6">
+              {editando.id ? `Editar Post #${editando.id}` : 'Nuevo Post'}
+            </h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">País *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
                 <input
                   type="text"
-                  value={editando.pais || ''}
-                  onChange={(e) => setEditando({...editando, pais: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-xl"
-                  placeholder="Francia"
+                  value={editando.titulo || ''}
+                  onChange={(e) => setEditando({...editando, titulo: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="Título del artículo"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Código País *</label>
-                  <input
-                    type="text"
-                    value={editando.codigo_pais || ''}
-                    onChange={(e) => setEditando({...editando, codigo_pais: e.target.value.toUpperCase()})}
-                    className="w-full px-4 py-2 border rounded-xl"
-                    placeholder="FRA"
-                    maxLength={3}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Emoji Bandera</label>
-                  <input
-                    type="text"
-                    value={editando.bandera_emoji || ''}
-                    onChange={(e) => setEditando({...editando, bandera_emoji: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-xl"
-                    placeholder="🇫🇷"
-                  />
-                </div>
-              </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL Imagen</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label>
                 <input
-                  type="url"
-                  value={editando.imagen || ''}
-                  onChange={(e) => setEditando({...editando, imagen: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-xl"
-                  placeholder="https://..."
+                  type="text"
+                  value={editando.slug || ''}
+                  onChange={(e) => setEditando({...editando, slug: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg font-mono text-sm"
+                  placeholder="titulo-del-articulo"
+                />
+                <p className="text-xs text-gray-500 mt-1">URL: /blog/{editando.slug || '...'}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Extracto</label>
+                <textarea
+                  value={editando.excerpt || ''}
+                  onChange={(e) => setEditando({...editando, excerpt: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows={2}
+                  placeholder="Resumen del artículo..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contenido</label>
                 <textarea
-                  value={editando.descripcion || ''}
-                  onChange={(e) => setEditando({...editando, descripcion: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-xl"
-                  rows={3}
-                  placeholder="Descripción del destino..."
+                  value={editando.contenido || ''}
+                  onChange={(e) => setEditando({...editando, contenido: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows={6}
+                  placeholder="Contenido del artículo..."
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nº Resorts</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL Imagen</label>
                   <input
-                    type="number"
-                    value={editando.numero_resorts || 0}
-                    onChange={(e) => setEditando({...editando, numero_resorts: parseInt(e.target.value)})}
-                    className="w-full px-4 py-2 border rounded-xl"
+                    type="url"
+                    value={editando.imagen || ''}
+                    onChange={(e) => setEditando({...editando, imagen: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="https://..."
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Continente</label>
-                  <select
-                    value={editando.continente || 'europa'}
-                    onChange={(e) => setEditando({...editando, continente: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-xl"
-                  >
-                    <option value="america_norte">América del Norte</option>
-                    <option value="america_central">América Central</option>
-                    <option value="america_sur">América del Sur</option>
-                    <option value="europa">Europa</option>
-                    <option value="asia">Asia</option>
-                    <option value="africa">África</option>
-                    <option value="oceania">Oceanía</option>
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Autor</label>
+                  <input
+                    type="text"
+                    value={editando.autor || ''}
+                    onChange={(e) => setEditando({...editando, autor: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="Admin"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Comida</label>
-                  <select
-                    value={editando.comida || 'Internacional'}
-                    onChange={(e) => setEditando({...editando, comida: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-xl"
-                  >
-                    <option value="Todo incluido">Todo incluido</option>
-                    <option value="Internacional">Internacional</option>
-                    <option value="Francesa">Francesa</option>
-                    <option value="Indonesia">Indonesia</option>
-                    <option value="Local">Local</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Transfers</label>
-                  <select
-                    value={editando.transfers || 'Privado'}
-                    onChange={(e) => setEditando({...editando, transfers: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-xl"
-                  >
-                    <option value="Privado">Privado</option>
-                    <option value="Aeropuerto-Hotel">Aeropuerto-Hotel</option>
-                    <option value="Compartido">Compartido</option>
-                    <option value="Sin transfers">Sin transfers</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Precio desde</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tags (separados por coma)</label>
                   <input
                     type="text"
-                    value={editando.precio_desde || ''}
-                    onChange={(e) => setEditando({...editando, precio_desde: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-xl"
-                    placeholder="999"
+                    value={Array.isArray(editando.tags) ? editando.tags.join(', ') : ''}
+                    onChange={(e) => setEditando({
+                      ...editando, 
+                      tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                    })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="viaje, playa, lujo"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Minutos lectura</label>
+                  <input
+                    type="number"
+                    value={editando.lectura_minutos || 5}
+                    onChange={(e) => setEditando({...editando, lectura_minutos: parseInt(e.target.value)})}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                  <select
+                    value={editando.status || 'borrador'}
+                    onChange={(e) => setEditando({...editando, status: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    <option value="borrador">Borrador</option>
+                    <option value="publicada">Publicada</option>
+                    <option value="archivada">Archivada</option>
+                  </select>
+                </div>
               </div>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={editando.activo ?? true}
-                  onChange={(e) => setEditando({...editando, activo: e.target.checked})}
-                  className="w-5 h-5 text-amber-500"
-                />
-                <span className="font-medium">Activo (visible en el blog)</span>
-              </label>
             </div>
             
-            <div className="flex gap-4 mt-6">
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setMostrarModal(false)}
-                className="flex-1 py-3 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50"
+                className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={guardar}
-                disabled={guardando || !editando.pais || !editando.codigo_pais}
-                className="flex-1 bg-amber-500 text-white py-3 rounded-xl font-semibold hover:bg-amber-600 disabled:opacity-50"
+                disabled={guardando || !editando.titulo || !editando.slug}
+                className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
-                {guardando ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Guardar'}
+                {guardando ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
           </div>

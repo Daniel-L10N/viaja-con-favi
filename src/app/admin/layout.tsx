@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, MapPin, Globe, Settings, LogOut } from 'lucide-react';
+import { Home, MapPin, Globe, FileText, LogOut } from 'lucide-react';
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', href: '/admin/dashboard' },
   { id: 'ofertas', label: 'Ofertas', href: '/admin/ofertas' },
   { id: 'destinos', label: 'Destinos', href: '/admin/destinos' },
+  { id: 'blog', label: 'Blog', href: '/admin/blog' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {tab.id === 'dashboard' && <Home className="w-5 h-5" />}
               {tab.id === 'ofertas' && <MapPin className="w-5 h-5" />}
               {tab.id === 'destinos' && <Globe className="w-5 h-5" />}
+              {tab.id === 'blog' && <FileText className="w-5 h-5" />}
               <span>{tab.label}</span>
             </Link>
           ))}
