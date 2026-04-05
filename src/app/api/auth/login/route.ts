@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_URL = 'https://cmxserver.curlew-vector.ts.net/viajaconfavi';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
     const res = NextResponse.json(data);
     res.cookies.set('admin_token', data.token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      secure: false,
+      sameSite: 'lax',
       maxAge: 86400,
       path: '/',
     });
