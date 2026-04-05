@@ -42,21 +42,21 @@ export async function getOfertasDestacadas(): Promise<Oferta[]> {
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
   try {
-    const data = await fetchAPI('/api/destinos/');
+    const data = await fetchAPI('/api/blog/');
     return data
-      .filter((d: any) => d.activo)
+      .filter((d: any) => d.status === 'publicada')
       .map((d: any) => ({
         id: String(d.id),
-        titulo: d.pais,
-        slug: d.codigo_pais,
-        excerpt: d.descripcion?.slice(0, 150) || '',
-        contenido: d.descripcion || '',
-        imagen: d.imagen || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
-        autor: 'Viaja con Favi',
-        tags: [],
-        lectura: 5,
+        titulo: d.titulo,
+        slug: d.slug,
+        excerpt: d.excerpt?.slice(0, 150) || '',
+        contenido: d.contenido || '',
+        imagen: d.imagen ? `http://127.0.0.1:8000${d.imagen}` : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+        autor: d.autor || 'Viaja con Favi',
+        tags: d.tags || [],
+        lectura: d.lectura_minutos || 5,
         fechaPublicacion: d.created_at,
-        status: 'publicada',
+        status: d.status,
       }));
   } catch (e) {
     console.error('getBlogPosts error:', e);
