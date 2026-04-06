@@ -14,6 +14,20 @@ export interface Oferta {
   visitas?: number;
 }
 
+export interface Destino {
+  id: string;
+  pais: string;
+  codigo_pais: string;
+  bandera_emoji: string;
+  imagen: string;
+  numero_resorts: number;
+  continente: string;
+  comida: string;
+  transfers: string;
+  precio_desde: string;
+  descripcion: string;
+}
+
 export interface BlogPost {
   id: string;
   cliente_id?: string;

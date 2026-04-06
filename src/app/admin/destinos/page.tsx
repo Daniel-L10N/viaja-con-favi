@@ -28,6 +28,8 @@ export default function BlogAdmin() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState<number | null>(null);
+  const [imagenFile, setImagenFile] = useState<File | null>(null);
+  const [imagenPreview, setImagenPreview] = useState<string | null>(null);
 
   const cargar = async () => {
     setLoading(true);
@@ -61,11 +63,15 @@ export default function BlogAdmin() {
       activo: true,
       orden: 0
     });
+    setImagenFile(null);
+    setImagenPreview(null);
     setMostrarModal(true);
   };
 
   const abrirEditar = (item: Destino) => {
     setEditando({ ...item });
+    setImagenFile(null);
+    setImagenPreview(item.imagen || null);
     setMostrarModal(true);
   };
 
@@ -82,15 +88,89 @@ export default function BlogAdmin() {
     }
   };
 
+  const handleImagenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validar tipo de archivo
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Tipo de archivo no permitido. Usa JPG, PNG, WebP o GIF');
+        return;
+      }
+      // Validar tamaño (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('El archivo excede 5MB');
+        return;
+      }
+      setImagenFile(file);
+      // Crear preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagenPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImagen = () => {
+    setImagenFile(null);
+    setImagenPreview(null);
+    if (editando) {
+      setEditando({ ...editando, imagen: '' });
+    }
+  };
+
   const guardar = async () => {
     if (!editando?.pais || !editando?.codigo_pais) return;
     
     setGuardando(true);
+    
+    // Usar FormData si hay archivo de imagen
+    if (imagenFile) {
+      const formData = new FormData();
+      formData.append('pais', editando.pais);
+      formData.append('codigo_pais', editando.codigo_pais.toUpperCase());
+      formData.append('bandera_emoji', editando.bandera_emoji || '🌍');
+      formData.append('imagen', imagenFile);
+      formData.append('numero_resorts', String(editando.numero_resorts || 0));
+      formData.append('continente', editando.continente || 'europa');
+      formData.append('comida', editando.comida || 'Internacional');
+      formData.append('transfers', editando.transfers || 'Privado');
+      formData.append('precio_desde', editando.precio_desde || '0');
+      formData.append('descripcion', editando.descripcion || '');
+      formData.append('activo', String(editando.activo ?? true));
+      formData.append('orden', String(editando.orden || 0));
+
+      try {
+        const method = editando.id ? 'PUT' : 'POST';
+        const url = editando.id 
+          ? `${API_BASE}/api/destinos/${editando.id}/`
+          : `${API_BASE}/api/destinos/`;
+        
+        await fetch(url, {
+          method,
+          body: formData
+        });
+        
+        setMostrarModal(false);
+        setEditando(null);
+        setImagenFile(null);
+        setImagenPreview(null);
+        cargar();
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setGuardando(false);
+      }
+      return;
+    }
+    
+    // Método original (sin archivo) - para compatibilidad
     const payload = {
       pais: editando.pais,
       codigo_pais: editando.codigo_pais.toUpperCase(),
       bandera_emoji: editando.bandera_emoji || '🌍',
-      imagen: editando.imagen || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+      imagen: editando.imagen || '',
       numero_resorts: editando.numero_resorts || 0,
       continente: editando.continente || 'europa',
       comida: editando.comida || 'Internacional',
@@ -340,14 +420,40 @@ export default function BlogAdmin() {
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL Imagen</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
               <input
-                type="url"
-                value={editando.imagen || ''}
-                onChange={(e) => setEditando({...editando, imagen: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg"
-                placeholder="https://..."
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleImagenChange}
+                className="w-full px-3 py-2 border rounded-lg bg-white"
               />
+              {imagenPreview && (
+                <div className="mt-2 relative inline-block">
+                  <img src={imagenPreview} alt="Preview" className="h-32 w-auto rounded-lg object-cover" />
+                  <button
+                    type="button"
+                    onClick={clearImagen}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              {editando.imagen && !imagenPreview && (
+                <div className="mt-2">
+                  <p className="text-sm text-gray-500 mb-1">Imagen actual:</p>
+                  <img src={editando.imagen} alt="Actual" className="h-32 w-auto rounded-lg object-cover" />
+                  <button
+                    type="button"
+                    onClick={clearImagen}
+                    className="text-xs text-red-500 hover:text-red-700 mt-1"
+                  >
+                    Eliminar imagen
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="mt-4">
