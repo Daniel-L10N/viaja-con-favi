@@ -15,7 +15,7 @@ const poppins = Poppins({
   display: "swap",
 });
 
-const defaultMetadata: Metadata = {
+export const metadata: Metadata = {
   metadataBase: new URL("https://viajaconfavi.com"),
   title: {
     default: "Viaja con Favi | Viajes de Lujo a Precios de Mayorista",
@@ -132,5 +132,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-export { defaultMetadata };
