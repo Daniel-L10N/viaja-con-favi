@@ -102,11 +102,7 @@ export default async function BlogDetallePage({ params }: Props) {
                 <p className="text-gray-700 leading-relaxed mb-6">
                   {post.contenido}
                 </p>
-                <p className="text-gray-700 leading-relaxed">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
-                  incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
-                  nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                </p>
+          
               </div>
               
               <div className="mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">

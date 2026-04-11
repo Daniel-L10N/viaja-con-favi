@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testing - Crear Blog</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #111827; padding: 24px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { margin-bottom: 18px; color: #0f172a; }
+    .card { background: white; border-radius: 24px; padding: 26px; border: 1px solid #e2e8f0; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); margin-bottom: 22px; }
+    label { display: block; margin-bottom: 8px; font-weight: 700; color: #334155; }
+    input, textarea, select { width: 100%; border-radius: 16px; border: 1px solid #cbd5e1; padding: 14px 16px; margin-bottom: 18px; background: #f8fafc; color: #0f172a; font-size: 1rem; }
+    textarea { min-height: 140px; resize: vertical; }
+    .field-grid { display: grid; gap: 18px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .field-grid.full { grid-template-columns: 1fr; }
+    .status { padding: 14px 16px; border-radius: 16px; margin-bottom: 18px; font-weight: 700; }
+    .status.loading { background: #fef3c7; color: #92400e; }
+    .status.success { background: #d1fae5; color: #065f46; }
+    .status.error { background: #fee2e2; color: #991b1b; }
+    .btn { background: #0ea5e9; color: white; border: none; border-radius: 999px; padding: 14px 20px; cursor: pointer; font-weight: 700; transition: transform 0.2s ease, background 0.2s ease; }
+    .btn:hover { background: #0284c7; transform: translateY(-1px); }
+    .preview { margin-top: 16px; }
+    .preview img { width: 100%; border-radius: 20px; object-fit: cover; max-height: 360px; display: block; margin-bottom: 16px; }
+    .preview-item { margin-top: 14px; padding: 16px; background: #f1f5f9; border-radius: 18px; }
+    .preview-item h2 { margin-bottom: 10px; font-size: 1.25rem; color: #0f172a; }
+    .preview-item p { line-height: 1.75; color: #475569; }
+    pre { margin-top: 20px; background: #0f172a; color: #e2e8f0; padding: 18px; border-radius: 18px; overflow-x: auto; font-size: 0.9rem; }
+    .note { font-size: 0.92rem; color: #64748b; margin-top: -12px; margin-bottom: 12px; }
+    @media (max-width: 720px) { .field-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Crear nuevo blog</h1>
+    <div id="status" class="status loading">Preparando formulario...</div>
+    <div class="card">
+      <div class="field-grid full">
+        <div>
+          <label for="titulo">Título</label>
+          <input id="titulo" type="text" placeholder="Tu título aquí" />
+        </div>
+      </div>
+      <div class="field-grid">
+        <div>
+          <label for="slug">Slug</label>
+          <input id="slug" type="text" placeholder="slug-del-post" />
+          <p class="note">Opcional: se usa para la URL del post.</p>
+        </div>
+        <div>
+          <label for="autor">Autor</label>
+          <input id="autor" type="text" placeholder="Viaja con Favi" />
+        </div>
+      </div>
+      <div class="field-grid full">
+        <div>
+          <label for="excerpt">Resumen / excerpt</label>
+          <textarea id="excerpt" placeholder="Resumen breve del post"></textarea>
+        </div>
+      </div>
+      <div class="field-grid full">
+        <div>
+          <label for="contenido">Contenido</label>
+          <textarea id="contenido" placeholder="Contenido completo del blog"></textarea>
+        </div>
+      </div>
+      <div class="field-grid">
+        <div>
+          <label for="imagen-file">Imagen</label>
+          <input id="imagen-file" type="file" accept="image/*" />
+          <p class="note">Selecciona una imagen desde tu PC. No se requiere URL.</p>
+        </div>
+        <div>
+          <label for="tags">Tags</label>
+          <input id="tags" type="text" placeholder="viajes, lujo, destinos" />
+        </div>
+      </div>
+      <div class="field-grid">
+        <div>
+          <label for="lectura">Lectura (minutos)</label>
+          <input id="lectura" type="text" placeholder="5" />
+        </div>
+        <div>
+          <label for="status-field">Status</label>
+          <select id="status-field">
+            <option value="borrador">borrador</option>
+            <option value="publicada">publicada</option>
+            <option value="archivada">archivada</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="submitBlogPost()">📤 Crear blog</button>
+    </div>
+    <div class="card preview" id="preview-card">
+      <h2>Vista previa</h2>
+      <div id="preview-content" class="preview-item">Completa el formulario para ver la vista previa.</div>
+    </div>
+    <div class="card">
+      <h2>Datos crudos</h2>
+      <pre id="raw-data">Esperando creación...</pre>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
+    const statusEl = document.getElementById('status');
+    const previewContent = document.getElementById('preview-content');
+    const rawDataEl = document.getElementById('raw-data');
+    const inputs = {
+      titulo: document.getElementById('titulo'),
+      slug: document.getElementById('slug'),
+      excerpt: document.getElementById('excerpt'),
+      contenido: document.getElementById('contenido'),
+      imagenFile: document.getElementById('imagen-file'),
+      autor: document.getElementById('autor'),
+      tags: document.getElementById('tags'),
+      lectura: document.getElementById('lectura'),
+      status: document.getElementById('status-field'),
+    };
+
+    function escapeHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getFormData() {
+      return {
+        titulo: inputs.titulo.value.trim(),
+        slug: inputs.slug.value.trim(),
+        excerpt: inputs.excerpt.value.trim(),
+        contenido: inputs.contenido.value.trim(),
+        imagenFile: inputs.imagenFile.files[0] || null,
+        autor: inputs.autor.value.trim() || 'Viaja con Favi',
+        tags: inputs.tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
+        lectura: Number(inputs.lectura.value) || 5,
+        lectura_minutos: Number(inputs.lectura.value) || 5,
+        status: inputs.status.value,
+      };
+    }
+
+    function updatePreview() {
+      const data = getFormData();
+      const imageFile = data.imagenFile;
+      const imageUrl = imageFile ? URL.createObjectURL(imageFile) : '';
+
+      previewContent.innerHTML = `
+        ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(data.titulo)}">` : ''}
+        <h2>${escapeHtml(data.titulo || 'Sin título')}</h2>
+        <p><strong>Autor:</strong> ${escapeHtml(data.autor)}</p>
+        <p><strong>Status:</strong> ${escapeHtml(data.status)}</p>
+        <p class="preview-text"><strong>Resumen:</strong> ${escapeHtml(data.excerpt)}</p>
+        <div class="preview-text"><strong>Contenido:</strong> ${escapeHtml(data.contenido)}</div>
+      `;
+
+      if (imageUrl) {
+        const img = previewContent.querySelector('img');
+        img.addEventListener('load', () => URL.revokeObjectURL(imageUrl), { once: true });
+      }
+    }
+
+    async function submitBlogPost() {
+      const data = getFormData();
+      if (!data.titulo) {
+        statusEl.className = 'status error';
+        statusEl.textContent = '❌ El título es obligatorio.';
+        return;
+      }
+
+      statusEl.className = 'status loading';
+      statusEl.textContent = 'Enviando blog...';
+      rawDataEl.textContent = 'Enviando datos...';
+
+      try {
+        let response;
+        if (data.imagenFile) {
+          const formData = new FormData();
+          formData.append('titulo', data.titulo);
+          formData.append('slug', data.slug);
+          formData.append('excerpt', data.excerpt);
+          formData.append('contenido', data.contenido);
+          formData.append('imagen', data.imagenFile);
+          formData.append('autor', data.autor);
+          formData.append('tags', JSON.stringify(data.tags));
+          formData.append('lectura_minutos', String(data.lectura_minutos));
+          formData.append('status', data.status);
+          response = await fetch(`${API_BASE}/api/blog/`, {
+            method: 'POST',
+            body: formData,
+          });
+        } else {
+          response = await fetch(`${API_BASE}/api/blog/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              titulo: data.titulo,
+              slug: data.slug,
+              excerpt: data.excerpt,
+              contenido: data.contenido,
+              autor: data.autor,
+              tags: data.tags,
+              lectura_minutos: data.lectura_minutos,
+              status: data.status,
+            }),
+          });
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`${response.status} ${response.statusText} ${errorText}`);
+        }
+
+        const result = await response.json();
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ Blog creado correctamente';
+        rawDataEl.textContent = JSON.stringify(result, null, 2);
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ Error: ${error.message}`;
+        rawDataEl.textContent = error.stack || error.message;
+      }
+    }
+
+    inputs.titulo.addEventListener('input', updatePreview);
+    inputs.slug.addEventListener('input', updatePreview);
+    inputs.excerpt.addEventListener('input', updatePreview);
+    inputs.contenido.addEventListener('input', updatePreview);
+    inputs.imagenFile.addEventListener('change', updatePreview);
+    inputs.autor.addEventListener('input', updatePreview);
+    inputs.tags.addEventListener('input', updatePreview);
+    inputs.lectura.addEventListener('input', updatePreview);
+    inputs.status.addEventListener('change', updatePreview);
+
+    statusEl.className = 'status success';
+    statusEl.textContent = 'Formulario listo para crear un blog.';
+    updatePreview();
+  </script>
+</body>
+</html>
