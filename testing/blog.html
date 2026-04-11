@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testing - Viaja con Favi Blog</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #1f2937; padding: 24px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { margin-bottom: 18px; color: #0f172a; }
+    .status { padding: 12px 16px; border-radius: 12px; margin-bottom: 18px; font-weight: 600; }
+    .status.loading { background: #fef3c7; color: #92400e; }
+    .status.success { background: #d1fae5; color: #065f46; }
+    .status.error { background: #fee2e2; color: #991b1b; }
+    .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .card { background: white; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); }
+    .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+    .card-body { padding: 20px; }
+    .card-title { font-size: 1.2rem; margin-bottom: 10px; color: #111827; }
+    .card-subtitle { margin-bottom: 14px; color: #475569; font-size: 0.95rem; line-height: 1.6; }
+    .blog-content { color: #334155; line-height: 1.75; font-size: 0.95rem; white-space: pre-wrap; max-height: 220px; overflow: hidden; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; font-size: 0.85rem; color: #64748b; }
+    .meta span { background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 999px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .tag { font-size: 0.82rem; background: #e0f2fe; color: #075985; padding: 6px 10px; border-radius: 999px; }
+    input, textarea, select { width: 100%; border-radius: 16px; border: 1px solid #cbd5e1; padding: 12px 14px; margin-bottom: 14px; background: #f8fafc; color: #0f172a; font-size: 1rem; }
+    textarea { min-height: 120px; resize: vertical; }
+    .card-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+    .card-actions button { background: #e2e8f0; color: #0f172a; border: none; border-radius: 999px; padding: 10px 16px; cursor: pointer; font-weight: 700; transition: background 0.2s ease; }
+    .card-actions button:hover { background: #cbd5e1; }
+    .card-actions button.delete { background: #fda4af; color: #9f1239; }
+    .card-actions button.delete:hover { background: #fb7185; }
+    .edit-panel { display: none; background: white; border-radius: 24px; padding: 24px; border: 1px solid #e2e8f0; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); margin-bottom: 24px; }
+    .edit-panel.active { display: block; }
+    .edit-panel-title { margin-bottom: 12px; font-size: 1.3rem; color: #111827; }
+    .edit-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .raw { margin: 30px 0 0; }
+    pre { background: #0f172a; color: #e2e8f0; border-radius: 18px; padding: 18px; overflow-x: auto; font-size: 0.9rem; }
+    .button-row { margin-top: 14px; }
+    .btn { background: #0ea5e9; color: white; border: none; border-radius: 999px; padding: 12px 20px; cursor: pointer; font-weight: 700; transition: transform 0.2s ease, background 0.2s ease; }
+    .btn:hover { background: #0284c7; transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Testing: Blog</h1>
+    <div id="status" class="status loading">Cargando publicaciones...</div>
+    <div id="edit-panel" class="edit-panel">
+      <div class="edit-panel-title">Editar publicación</div>
+      <div class="edit-row">
+        <div>
+          <label for="edit-title">Título</label>
+          <input id="edit-title" type="text" />
+        </div>
+        <div>
+          <label for="edit-slug">Slug</label>
+          <input id="edit-slug" type="text" />
+        </div>
+        <div>
+          <label for="edit-status">Status</label>
+          <select id="edit-status">
+            <option value="borrador">borrador</option>
+            <option value="publicada">publicada</option>
+            <option value="archivada">archivada</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label for="edit-excerpt">Resumen / excerpt</label>
+        <textarea id="edit-excerpt"></textarea>
+      </div>
+      <div>
+        <label for="edit-contenido">Contenido</label>
+        <textarea id="edit-contenido"></textarea>
+      </div>
+      <div>
+        <label for="edit-tags">Tags (separados por comas)</label>
+        <input id="edit-tags" type="text" />
+      </div>
+      <div class="card-actions">
+        <button class="btn" id="save-edit">Guardar cambios</button>
+        <button class="btn delete" id="cancel-edit">Cancelar</button>
+      </div>
+    </div>
+    <div class="grid" id="blog-list"></div>
+    <div class="raw">
+      <h2>Datos crudos</h2>
+      <pre id="raw-data">Cargando...</pre>
+    </div>
+    <div class="button-row">
+      <button class="btn" onclick="initialize()">🔄 Recargar publicaciones</button>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
+
+    class ViajaAPI {
+      constructor(baseUrl) { this.baseUrl = baseUrl; }
+      async get(endpoint) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`);
+        if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+        return response.json();
+      }
+      async put(endpoint, data) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+        try {
+          return await response.json();
+        } catch {
+          return null;
+        }
+      }
+      async delete(endpoint) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+        return true;
+      }
+    }
+
+    const api = new ViajaAPI(API_BASE);
+    const statusEl = document.getElementById('status');
+    const blogListEl = document.getElementById('blog-list');
+    const rawDataEl = document.getElementById('raw-data');
+    const editPanel = document.getElementById('edit-panel');
+    const editTitle = document.getElementById('edit-title');
+    const editSlug = document.getElementById('edit-slug');
+    const editStatus = document.getElementById('edit-status');
+    const editExcerpt = document.getElementById('edit-excerpt');
+    const editContenido = document.getElementById('edit-contenido');
+    const editTags = document.getElementById('edit-tags');
+    const saveEditButton = document.getElementById('save-edit');
+    const cancelEditButton = document.getElementById('cancel-edit');
+    let currentPosts = [];
+    let editingPostId = null;
+    let currentEditingPost = null;
+
+    function escapeHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function parseTagsValue(value) {
+      if (Array.isArray(value)) return value;
+      if (!value) return [];
+      if (typeof value === 'string') {
+        try {
+          const parsed = JSON.parse(value);
+          if (Array.isArray(parsed)) return parsed;
+        } catch {
+          return value.split(',').map(tag => tag.trim()).filter(Boolean);
+        }
+      }
+      return [];
+    }
+
+    function renderBlogPost(post) {
+      const tags = parseTagsValue(post.tags);
+
+      return `
+        <article class="card">
+          ${post.imagen ? `<img src="${escapeHtml(post.imagen)}" alt="${escapeHtml(post.titulo)}">` : ''}
+          <div class="card-body">
+            <h2 class="card-title">${escapeHtml(post.titulo || post.slug || 'Sin título')}</h2>
+            <p class="card-subtitle">${escapeHtml(post.excerpt || 'Sin resumen disponible.')}</p>
+            <div class="blog-content">${escapeHtml(post.contenido || 'No hay contenido disponible.')}</div>
+            <div class="meta">
+              <span>${escapeHtml(post.autor || 'Autor desconocido')}</span>
+              <span>${escapeHtml(post.fechaPublicacion || 'Fecha no disponible')}</span>
+              <span>${escapeHtml(String(post.lectura || post.lectura_minutos || 'N/A'))} min</span>
+              <span>${escapeHtml(post.status || 'status no definido')}</span>
+            </div>
+            ${tags.length ? `<div class="tags">${tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
+            <div class="card-actions">
+              <button type="button" onclick="editPost('${post.id}')">Editar</button>
+              <button type="button" class="delete" onclick="deletePost('${post.id}')">Eliminar</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    async function initialize() {
+      statusEl.className = 'status loading';
+      statusEl.textContent = 'Cargando publicaciones...';
+      blogListEl.innerHTML = '';
+      hideEditPanel();
+
+      try {
+        const posts = await api.get('/api/blog/');
+        currentPosts = Array.isArray(posts) ? posts : [];
+        if (!currentPosts.length) {
+          blogListEl.innerHTML = '<div class="card"><div class="card-body"><p>No se encontraron publicaciones.</p></div></div>';
+        } else {
+          blogListEl.innerHTML = currentPosts.map(renderBlogPost).join('');
+        }
+        rawDataEl.textContent = JSON.stringify(currentPosts, null, 2);
+        statusEl.className = 'status success';
+        statusEl.textContent = `✅ ${currentPosts.length} publicaciones cargadas`;
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ Error: ${error.message}`;
+        rawDataEl.textContent = error.stack || error.message;
+        blogListEl.innerHTML = '<div class="card"><div class="card-body"><p>Error cargando publicaciones.</p></div></div>';
+      }
+    }
+
+    function fillEditForm(post) {
+      editingPostId = post.id;
+      currentEditingPost = post;
+      editTitle.value = post.titulo || '';
+      editSlug.value = post.slug || '';
+      editStatus.value = post.status || 'borrador';
+      editExcerpt.value = post.excerpt || '';
+      editContenido.value = post.contenido || '';
+      editTags.value = parseTagsValue(post.tags).join(', ');
+      editPanel.classList.add('active');
+      window.scrollTo({ top: editPanel.offsetTop - 20, behavior: 'smooth' });
+    }
+
+    function hideEditPanel() {
+      editingPostId = null;
+      currentEditingPost = null;
+      editPanel.classList.remove('active');
+      editTitle.value = '';
+      editSlug.value = '';
+      editStatus.value = 'borrador';
+      editExcerpt.value = '';
+      editContenido.value = '';
+      editTags.value = '';
+    }
+
+    window.editPost = function (id) {
+      const post = currentPosts.find(post => String(post.id) === String(id));
+      if (!post) return;
+      fillEditForm(post);
+    };
+
+    window.deletePost = async function (id) {
+      if (!confirm('¿Eliminar este post? Esta acción no se puede deshacer.')) return;
+      statusEl.className = 'status loading';
+      statusEl.textContent = 'Eliminando publicación...';
+      try {
+        await api.delete(`/api/blog/${id}/`);
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ Publicación eliminada';
+        initialize();
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ Error eliminando publicación: ${error.message}`;
+      }
+    };
+
+    async function saveEdit() {
+      if (!editingPostId) return;
+      const titulo = editTitle.value.trim();
+      let slug = editSlug.value.trim();
+      if (!titulo || !slug) {
+        statusEl.className = 'status error';
+        statusEl.textContent = '❌ Título y slug son obligatorios para guardar.';
+        return;
+      }
+      slug = slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const tags = editTags.value.split(',').map(tag => tag.trim()).filter(Boolean);
+      const data = {
+        titulo,
+        slug,
+        status: editStatus.value,
+        excerpt: editExcerpt.value.trim(),
+        contenido: editContenido.value.trim(),
+        tags,
+      };
+
+      statusEl.className = 'status loading';
+      statusEl.textContent = 'Guardando cambios...';
+
+      try {
+        await api.put(`/api/blog/${editingPostId}/`, data);
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ Cambios guardados';
+        hideEditPanel();
+        initialize();
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ Error guardando cambios: ${error.message}`;
+      }
+    }
+
+    saveEditButton.addEventListener('click', saveEdit);
+    cancelEditButton.addEventListener('click', hideEditPanel);
+
+    initialize();
+  </script>
+</body>
+</html>

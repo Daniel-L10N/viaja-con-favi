@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, Loader2, FileText, Eye, EyeOff } from 'lucide-react';
+import { ImageUpload } from '@/components/ImageUpload';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
@@ -26,6 +27,8 @@ export default function BlogAdmin() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState<number | null>(null);
+  const [imagenFile, setImagenFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const cargar = async () => {
     setLoading(true);
@@ -45,6 +48,8 @@ export default function BlogAdmin() {
   }, []);
 
   const abrirNuevo = () => {
+    setImagenFile(null);
+    setPreviewUrl(null);
     setEditando({
       titulo: '',
       slug: '',
@@ -60,6 +65,8 @@ export default function BlogAdmin() {
   };
 
   const abrirEditar = (item: BlogPost) => {
+    setImagenFile(null);
+    setPreviewUrl(item.imagen || null);
     setEditando({ ...item });
     setMostrarModal(true);
   };
@@ -81,17 +88,22 @@ export default function BlogAdmin() {
     if (!editando?.titulo || !editando?.slug) return;
     
     setGuardando(true);
-    const payload = {
-      titulo: editando.titulo,
-      slug: editando.slug.toLowerCase().replace(/\s+/g, '-'),
-      excerpt: editando.excerpt || '',
-      contenido: editando.contenido || '',
-      imagen: editando.imagen || null,
-      autor: editando.autor || 'Admin',
-      tags: editando.tags || [],
-      lectura_minutos: editando.lectura_minutos || 5,
-      status: editando.status || 'borrador'
-    };
+    
+    // Create FormData for multipart/form-data upload
+    const formData = new FormData();
+    formData.append('titulo', editando.titulo);
+    formData.append('slug', editando.slug.toLowerCase().replace(/\s+/g, '-'));
+    formData.append('excerpt', editando.excerpt || '');
+    formData.append('contenido', editando.contenido || '');
+    formData.append('autor', editando.autor || 'Admin');
+    formData.append('tags', JSON.stringify(editando.tags || []));
+    formData.append('lectura_minutos', String(editando.lectura_minutos || 5));
+    formData.append('status', editando.status || 'borrador');
+    
+    // Append image file if selected
+    if (imagenFile) {
+      formData.append('imagen', imagenFile);
+    }
 
     try {
       const method = editando.id ? 'PUT' : 'POST';
@@ -101,12 +113,13 @@ export default function BlogAdmin() {
       
       await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: formData
       });
       
       setMostrarModal(false);
       setEditando(null);
+      setImagenFile(null);
+      setPreviewUrl(null);
       cargar();
     } catch (e) {
       console.error(e);
@@ -255,13 +268,19 @@ export default function BlogAdmin() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">URL Imagen</label>
-                  <input
-                    type="url"
-                    value={editando.imagen || ''}
-                    onChange={(e) => setEditando({...editando, imagen: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    placeholder="https://..."
+                  <ImageUpload
+                    value={previewUrl}
+                    onChange={(file) => {
+                      setImagenFile(file);
+                      // Create temporary preview URL for the file
+                      if (file) {
+                        const url = URL.createObjectURL(file);
+                        setPreviewUrl(url);
+                      } else {
+                        setPreviewUrl(null);
+                      }
+                    }}
+                    label="Imagen"
                   />
                 </div>
                 <div>
