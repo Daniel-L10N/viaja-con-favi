@@ -1,6 +1,6 @@
 import type { BlogPost, Oferta } from './types';
 
-const DEFAULT_API_URL = 'http://127.0.0.1:8000';
+const DEFAULT_API_URL = 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
 
 type QueryValue = string | number | boolean | null | undefined;
 type ApiFetchOptions = RequestInit & {
@@ -27,7 +27,7 @@ type BlogPayload = Partial<BlogPost> & {
 };
 
 function getApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(/\/$/, '');
+  return (process.env.VIAJA_BACKEND_URL || DEFAULT_API_URL).replace(/\/$/, '');
 }
 
 function buildApiUrl(endpoint: string, query?: Record<string, QueryValue>) {

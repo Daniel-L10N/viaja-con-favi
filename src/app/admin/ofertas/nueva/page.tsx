@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { DestinoOption, OfertaForm, OfertaFormData } from '@/components/admin/oferta-form';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
+const API_BASE_URL = (process.env.VIAJA_BACKEND_URL || 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi').replace(/\/$/, '');
 
 async function fetchDestinos(): Promise<DestinoOption[]> {
   const response = await fetch(`${API_BASE_URL}/api/destinos/`, { cache: 'no-store' });
