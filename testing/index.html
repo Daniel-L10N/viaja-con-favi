@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testing - Viaja con Favi</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #1a365d;
+      margin-bottom: 20px;
+    }
+    
+    .status {
+      padding: 10px 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+    
+    .status.success {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    
+    .status.error {
+      background: #fed7d7;
+      color: #822727;
+    }
+    
+    .status.loading {
+      background: #feebc8;
+      color: #744210;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .card h2 {
+      color: #2d3748;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+    }
+    
+    .card p {
+      color: #718096;
+      margin-bottom: 10px;
+    }
+    
+    .card .count {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #3182ce;
+    }
+    
+    .btn {
+      background: #3182ce;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+    
+    .btn:hover {
+      background: #2c5282;
+    }
+    
+    pre {
+      background: #1a202c;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Testing: Viaja con Favi API</h1>
+    
+    <div id="status" class="status loading">Cargando...</div>
+    
+    <div class="grid" id="results">
+      <!-- Resultados -->
+    </div>
+    
+    <div style="margin-top: 30px;">
+      <h2>📝 Datos crudos</h2>
+      <pre id="raw-data">Sin datos...</pre>
+    </div>
+    
+    <button class="btn" onclick="loadAllData()">🔄 Recargar Datos</button>
+  </div>
+
+  <script>
+    // ============================================
+    // API Configuration
+    // ============================================
+    const API_BASE = 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
+    
+    // ============================================
+    // API Client Class
+    // ============================================
+    class ViajaAPI {
+      constructor(baseUrl) {
+        this.baseUrl = baseUrl;
+      }
+      
+      async get(endpoint) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`);
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      }
+      
+      async post(endpoint, data) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      }
+    }
+    
+    // ============================================
+    // Initialize
+    // ============================================
+    const api = new ViajaAPI(API_BASE);
+    const statusEl = document.getElementById('status');
+    const resultsEl = document.getElementById('results');
+    const rawDataEl = document.getElementById('raw-data');
+    
+    // ============================================
+    // Load All Data
+    // ============================================
+    async function loadAllData() {
+      statusEl.className = 'status loading';
+      statusEl.textContent = 'Cargando datos...';
+      
+      const endpoints = [
+        { name: 'Destinos', path: '/api/destinos/' },
+        { name: 'Paquetes', path: '/api/paquetes/' },
+        { name: 'Blog', path: '/api/blog/' },
+        { name: 'Testimonios', path: '/api/testimonios/' },
+        { name: 'Garantías', path: '/api/garantias/' }
+      ];
+      
+      const results = {};
+      
+      try {
+        // Load all endpoints in parallel
+        const promises = endpoints.map(async (ep) => {
+          const data = await api.get(ep.path);
+          results[ep.name] = data;
+          return { name: ep.name, data };
+        });
+        
+        const loaded = await Promise.all(promises);
+        
+        // Display results
+        displayResults(loaded);
+        
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ ¡Datos cargados correctamente!';
+        
+        // Show raw data
+        rawDataEl.textContent = JSON.stringify(results, null, 2);
+        
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ Error: ${error.message}`;
+        console.error('Error loading data:', error);
+      }
+    }
+    
+    // ============================================
+    // Display Results
+    // ============================================
+    function displayResults(data) {
+      resultsEl.innerHTML = '';
+      
+      data.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <h2>${item.name}</h2>
+          <p class="count">${item.data.length}</p>
+          <p>${getPreview(item.data)}</p>
+        `;
+        resultsEl.appendChild(card);
+      });
+    }
+    
+    // ============================================
+    // Get Preview
+    // ============================================
+    function getPreview(data) {
+      if (data.length === 0) return 'Sin registros';
+      
+      const first = data[0];
+      const keys = Object.keys(first).slice(0, 3);
+      return keys.map(k => `${k}: ${first[k]}`).join(', ');
+    }
+    
+    // ============================================
+    // Load on start
+    // ============================================
+    loadAllData();
+  </script>
+</body>
+</html>
