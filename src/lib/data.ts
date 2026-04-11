@@ -1,37 +1,41 @@
 import type { BlogPost, Oferta, Destino } from './types';
 
-const API_BASE = 'http://127.0.0.1:8000';
+// URL base de la API del servidor
+// Usa VIAJA_BACKEND_URL (Vercel) o NEXT_PUBLIC_API_URL (desarrollo)
+const API_BASE = process.env.VIAJA_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
+const MEDIA_BASE = `${API_BASE}/media`;
 
 async function fetchAPI(endpoint: string) {
-  const res = await fetch(`${API_BASE}${endpoint}`, { 
-    cache: 'no-store',
-    next: { revalidate: 0 }
-  });
-  if (!res.ok) throw new Error(`API Error: ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, { 
+      cache: 'no-store',
+      next: { revalidate: 0 }
+    });
+    if (!res.ok) throw new Error(`API Error: ${res.status}`);
+    return res.json();
+  } catch (e) {
+    console.error(`fetchAPI error (${endpoint}):`, e);
+    return null;
+  }
 }
 
 // Función auxiliar para formatear URL de imagen
 function formatImagenUrl(imagen: string | null): string {
   if (!imagen) return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
   
-  // Si es una URL externa (ya starts con http y no es del servidor local)
-  if (imagen.startsWith('http') && !imagen.includes('localhost:8000/media/')) {
+  // Si ya es una URL completa del servidor (con puerto 8080)
+  if (imagen.includes(':8080')) {
     return imagen;
   }
   
-  // Si es una ruta de archivo local (/media/destinos/...)
+  // Si es una ruta local (/media/...)
   if (imagen.startsWith('/media/') || imagen.startsWith('media/')) {
-    return `http://127.0.0.1:8000${imagen}`;
+    return `${MEDIA_BASE}${imagen.startsWith('/') ? '' : '/'}${imagen}`;
   }
   
-  // Si la URL está encodeada (problema de migración) -limpiar
-  if (imagen.includes('%3A') || imagen.includes('images.unsplash.com')) {
-    // Decodificar y limpiar URL corrupta de migración
-    try {
-      const decoded = decodeURIComponent(imagen);
-      if (decoded.startsWith('http')) return decoded;
-    } catch (e) {}
+  // Si es una URL externa (Unsplash, etc)
+  if (imagen.startsWith('http')) {
+    return imagen;
   }
   
   // Default
@@ -103,7 +107,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         slug: d.slug,
         excerpt: d.excerpt?.slice(0, 150) || '',
         contenido: d.contenido || '',
-        imagen: d.imagen ? `http://127.0.0.1:8000${d.imagen}` : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+        imagen: formatImagenUrl(d.imagen),
         autor: d.autor || 'Viaja con Favi',
         tags: d.tags || [],
         lectura: d.lectura_minutos || 5,
