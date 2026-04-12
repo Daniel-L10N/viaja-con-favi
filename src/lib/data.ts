@@ -69,7 +69,7 @@ export async function getOfertas(): Promise<Oferta[]> {
     const destinos = await getDestinos();
     
     // Mapear destinos a ofertas (para compatibilidad con la UI existente)
-    return destinos.map((d) => ({
+    return destinos.map((d, index) => ({
       id: d.id,
       titulo: `Viaje a ${d.pais}`,
       descripcion: d.descripcion || `Explora ${d.pais} con nuestros paquetes exclusivos`,
@@ -79,7 +79,7 @@ export async function getOfertas(): Promise<Oferta[]> {
       incluye: [],
       duracion: `${d.numero_resorts || 7} días`,
       fechaPublicacion: new Date().toISOString(),
-      destacada: false,
+      destacada: index < 3,
       status: 'publicada',
     }));
   } catch (e) {
