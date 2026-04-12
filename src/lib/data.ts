@@ -15,8 +15,8 @@ async function fetchAPI(endpoint: string) {
 function formatImagenUrl(imagen: string | null): string {
   if (!imagen) return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
   
-  // Si es una URL http del servidor cmxserver, convertir a https
-  if (imagen.startsWith('http://cmxserver.')) {
+  // FIX: Convertir cualquier URL HTTP del servidor a HTTPS (prioridad máxima)
+  if (imagen.includes('cmxserver.curlew-vector.ts.net') && imagen.startsWith('http://')) {
     return imagen.replace('http://', 'https://');
   }
   
