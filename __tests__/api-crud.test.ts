@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.11:8000';
+const API_BASE = process.env.VIAJA_BACKEND_URL || 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
 
 describe('API CRUD Tests - Ofertas (Paquetes)', () => {
   let testOfertaId: number;

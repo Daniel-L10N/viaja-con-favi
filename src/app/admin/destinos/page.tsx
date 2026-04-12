@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_BASE = process.env.VIAJA_BACKEND_URL || 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
 
 interface Destino {
   id: number;

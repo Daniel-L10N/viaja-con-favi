@@ -1,9 +1,6 @@
 import type { BlogPost, Oferta, Destino } from './types';
 
-// URL base de la API del servidor
-// Usa VIAJA_BACKEND_URL (Vercel) o NEXT_PUBLIC_API_URL (desarrollo)
-const API_BASE = process.env.VIAJA_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
-const MEDIA_BASE = `${API_BASE}/media`;
+const API_BASE = process.env.VIAJA_BACKEND_URL || 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
 
 async function fetchAPI(endpoint: string) {
   try {
@@ -23,19 +20,40 @@ async function fetchAPI(endpoint: string) {
 function formatImagenUrl(imagen: string | null): string {
   if (!imagen) return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
   
-  // Si ya es una URL completa del servidor (con puerto 8080)
-  if (imagen.includes(':8080')) {
+// FIX: Convertir cualquier URL HTTP del servidor a HTTPS (prioridad máxima)
+  if (imagen.includes('cmxserver.curlew-vector.ts.net') && imagen.startsWith('http://')) {
+    return imagen.replace('http://', 'https://');
+  }
+  
+  // Si es una URL https del servidor cmxserver
+  if (imagen.startsWith('https://cmxserver.')) {
+    return imagen;
+  }
+  
+  // Si es una URL externa (unsplash, etc)
+  if (imagen.startsWith('http')) {
     return imagen;
   }
   
   // Si es una ruta local (/media/...)
   if (imagen.startsWith('/media/') || imagen.startsWith('media/')) {
+    return `${API_BASE}${imagen}`;
+  }
+    return imagen;
+  }
+  
+  // Si es una ruta local (/media/...)
+  if (imagen.startsWith('/media/') || imagen.startsWith('media/')) {
+<<<<<<< HEAD
     return `${MEDIA_BASE}${imagen.startsWith('/') ? '' : '/'}${imagen}`;
   }
   
   // Si es una URL externa (Unsplash, etc)
   if (imagen.startsWith('http')) {
     return imagen;
+=======
+    return `${API_BASE}${imagen}`;
+>>>>>>> working
   }
   
   // Default
@@ -72,7 +90,7 @@ export async function getOfertas(): Promise<Oferta[]> {
     const destinos = await getDestinos();
     
     // Mapear destinos a ofertas (para compatibilidad con la UI existente)
-    return destinos.map((d) => ({
+    return destinos.map((d, index) => ({
       id: d.id,
       titulo: `Viaje a ${d.pais}`,
       descripcion: d.descripcion || `Explora ${d.pais} con nuestros paquetes exclusivos`,
@@ -82,7 +100,7 @@ export async function getOfertas(): Promise<Oferta[]> {
       incluye: [],
       duracion: `${d.numero_resorts || 7} días`,
       fechaPublicacion: new Date().toISOString(),
-      destacada: false,
+      destacada: index < 3,
       status: 'publicada',
     }));
   } catch (e) {
@@ -107,7 +125,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         slug: d.slug,
         excerpt: d.excerpt?.slice(0, 150) || '',
         contenido: d.contenido || '',
-        imagen: formatImagenUrl(d.imagen),
+imagen: d.imagen ? formatImagenUrl(d.imagen) : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
         autor: d.autor || 'Viaja con Favi',
         tags: d.tags || [],
         lectura: d.lectura_minutos || 5,
