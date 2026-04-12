@@ -20,7 +20,7 @@ async function fetchAPI(endpoint: string) {
 function formatImagenUrl(imagen: string | null): string {
   if (!imagen) return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
   
-// FIX: Convertir cualquier URL HTTP del servidor a HTTPS (prioridad máxima)
+  // FIX: Convertir cualquier URL HTTP del servidor a HTTPS (prioridad máxima)
   if (imagen.includes('cmxserver.curlew-vector.ts.net') && imagen.startsWith('http://')) {
     return imagen.replace('http://', 'https://');
   }
@@ -38,22 +38,6 @@ function formatImagenUrl(imagen: string | null): string {
   // Si es una ruta local (/media/...)
   if (imagen.startsWith('/media/') || imagen.startsWith('media/')) {
     return `${API_BASE}${imagen}`;
-  }
-    return imagen;
-  }
-  
-  // Si es una ruta local (/media/...)
-  if (imagen.startsWith('/media/') || imagen.startsWith('media/')) {
-<<<<<<< HEAD
-    return `${MEDIA_BASE}${imagen.startsWith('/') ? '' : '/'}${imagen}`;
-  }
-  
-  // Si es una URL externa (Unsplash, etc)
-  if (imagen.startsWith('http')) {
-    return imagen;
-=======
-    return `${API_BASE}${imagen}`;
->>>>>>> working
   }
   
   // Default
@@ -125,7 +109,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         slug: d.slug,
         excerpt: d.excerpt?.slice(0, 150) || '',
         contenido: d.contenido || '',
-imagen: d.imagen ? formatImagenUrl(d.imagen) : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+        imagen: d.imagen ? formatImagenUrl(d.imagen) : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
         autor: d.autor || 'Viaja con Favi',
         tags: d.tags || [],
         lectura: d.lectura_minutos || 5,
