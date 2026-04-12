@@ -1,6 +1,6 @@
 import type { BlogPost, Oferta, Destino } from './types';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = process.env.VIAJA_BACKEND_URL || 'https://cmxserver.curlew-vector.ts.net/viaja-con-favi';
 
 async function fetchAPI(endpoint: string) {
   const res = await fetch(`${API_BASE}${endpoint}`, { 
@@ -15,23 +15,24 @@ async function fetchAPI(endpoint: string) {
 function formatImagenUrl(imagen: string | null): string {
   if (!imagen) return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
   
-  // Si es una URL externa (ya starts con http y no es del servidor local)
-  if (imagen.startsWith('http') && !imagen.includes('localhost:8000/media/')) {
+  // Si es una URL http del servidor cmxserver, convertir a https
+  if (imagen.startsWith('http://cmxserver.')) {
+    return imagen.replace('http://', 'https://');
+  }
+  
+  // Si es una URL https del servidor cmxserver
+  if (imagen.startsWith('https://cmxserver.')) {
+    return imagen;
+  }
+  
+  // Si es una URL externa (unsplash, etc)
+  if (imagen.startsWith('http')) {
     return imagen;
   }
   
   // Si es una ruta de archivo local (/media/destinos/...)
   if (imagen.startsWith('/media/') || imagen.startsWith('media/')) {
-    return `http://127.0.0.1:8000${imagen}`;
-  }
-  
-  // Si la URL está encodeada (problema de migración) -limpiar
-  if (imagen.includes('%3A') || imagen.includes('images.unsplash.com')) {
-    // Decodificar y limpiar URL corrupta de migración
-    try {
-      const decoded = decodeURIComponent(imagen);
-      if (decoded.startsWith('http')) return decoded;
-    } catch (e) {}
+    return `${API_BASE}${imagen}`;
   }
   
   // Default
@@ -103,7 +104,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         slug: d.slug,
         excerpt: d.excerpt?.slice(0, 150) || '',
         contenido: d.contenido || '',
-        imagen: d.imagen ? `http://127.0.0.1:8000${d.imagen}` : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+        imagen: d.imagen ? formatImagenUrl(d.imagen) : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
         autor: d.autor || 'Viaja con Favi',
         tags: d.tags || [],
         lectura: d.lectura_minutos || 5,
