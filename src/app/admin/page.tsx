@@ -40,6 +40,14 @@ interface Testimonio {
   aprobado: boolean;
 }
 
+interface NewTestimonio {
+  nombre: string;
+  texto: string;
+  viaje: string;
+  rating: number;
+  foto: string;
+}
+
 interface Garantia {
   id: number;
   titulo: string;
@@ -69,6 +77,14 @@ export default function AdminPanel() {
   const [garantias, setGarantias] = useState<Garantia[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTestimonioForm, setShowTestimonioForm] = useState(false);
+  const [newTestimonio, setNewTestimonio] = useState<NewTestimonio>({
+    nombre: '',
+    texto: '',
+    viaje: '',
+    rating: 5,
+    foto: '',
+  });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -124,6 +140,27 @@ export default function AdminPanel() {
     }
   };
 
+  const handleCreateTestimonio = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await apiFetch(API_CONFIG.endpoints.testimonios, {
+        method: 'POST',
+        body: JSON.stringify(newTestimonio),
+      });
+      setNewTestimonio({
+        nombre: '',
+        texto: '',
+        viaje: '',
+        rating: 5,
+        foto: '',
+      });
+      setShowTestimonioForm(false);
+      loadData();
+    } catch (error) {
+      console.error('Error creating testimonio:', error);
+    }
+  };
+
   const renderDestinos = () => (
     <div className="grid gap-4">
       {destinos.map((d) => (
@@ -161,25 +198,99 @@ export default function AdminPanel() {
   );
 
   const renderTestimonios = () => (
-    <div className="grid gap-4">
-      {testimonios.map((t) => (
-        <div key={t.id} className="bg-white p-4 rounded-lg shadow">
-          <div className="flex justify-between items-start">
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShowTestimonioForm(!showTestimonioForm)}
+          className="px-4 py-2 bg-gold text-white rounded-lg hover:bg-gold/90 transition"
+        >
+          {showTestimonioForm ? 'Cancelar' : '+ Nuevo Testimonio'}
+        </button>
+      </div>
+
+      {showTestimonioForm && (
+        <form onSubmit={handleCreateTestimonio} className="bg-gray-50 p-6 rounded-lg border border-gray-200 space-y-4">
+          <h3 className="font-bold text-lg">Crear Nuevo Testimonio</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h3 className="font-bold">{t.nombre}</h3>
-              <p className="text-sm text-gray-500">{t.viaje}</p>
-              <p className="mt-2">{t.texto.substring(0, 100)}...</p>
-              <div className="text-gold">{'★'.repeat(t.rating)}</div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+              <input
+                type="text"
+                value={newTestimonio.nombre}
+                onChange={(e) => setNewTestimonio({ ...newTestimonio, nombre: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+                required
+              />
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => handleDelete(API_CONFIG.endpoints.testimonios, t.id)} className="px-3 py-1 bg-red-500 text-white rounded">Eliminar</button>
-              <button onClick={() => handleToggleActive(API_CONFIG.endpoints.testimonios, t.id, t.aprobado)} className={`px-3 py-1 rounded ${t.aprobado ? 'bg-green-500' : 'bg-gray-300'}`}>
-                {t.aprobado ? 'Aprobado' : 'Pendiente'}
-              </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Viaje/Destino</label>
+              <input
+                type="text"
+                value={newTestimonio.viaje}
+                onChange={(e) => setNewTestimonio({ ...newTestimonio, viaje: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+                required
+              />
             </div>
           </div>
-        </div>
-      ))}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">URL de Foto</label>
+            <input
+              type="url"
+              value={newTestimonio.foto}
+              onChange={(e) => setNewTestimonio({ ...newTestimonio, foto: e.target.value })}
+              placeholder="https://images.unsplash.com/..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Rating (1-5)</label>
+            <select
+              value={newTestimonio.rating}
+              onChange={(e) => setNewTestimonio({ ...newTestimonio, rating: parseInt(e.target.value) })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+            >
+              {[1, 2, 3, 4, 5].map((r) => (
+                <option key={r} value={r}>{'★'.repeat(r)}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Texto del Testimonio</label>
+            <textarea
+              value={newTestimonio.texto}
+              onChange={(e) => setNewTestimonio({ ...newTestimonio, texto: e.target.value })}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+              required
+            />
+          </div>
+          <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+            Crear Testimonio
+          </button>
+        </form>
+      )}
+
+      <div className="grid gap-4">
+        {testimonios.map((t) => (
+          <div key={t.id} className="bg-white p-4 rounded-lg shadow">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-bold">{t.nombre}</h3>
+                <p className="text-sm text-gray-500">{t.viaje}</p>
+                <p className="mt-2">{t.texto.substring(0, 100)}...</p>
+                <div className="text-gold">{'★'.repeat(t.rating)}</div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => handleDelete(API_CONFIG.endpoints.testimonios, t.id)} className="px-3 py-1 bg-red-500 text-white rounded">Eliminar</button>
+                <button onClick={() => handleToggleActive(API_CONFIG.endpoints.testimonios, t.id, t.aprobado)} className={`px-3 py-1 rounded ${t.aprobado ? 'bg-green-500' : 'bg-gray-300'}`}>
+                  {t.aprobado ? 'Aprobado' : 'Pendiente'}
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 
