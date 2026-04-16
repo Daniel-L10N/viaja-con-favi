@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { API_CONFIG, apiFetch } from '@/lib/api';
+import { ImageUpload } from '@/components/ImageUpload';
 
 interface Destino {
   id: number;
@@ -45,7 +46,8 @@ interface NewTestimonio {
   texto: string;
   viaje: string;
   rating: number;
-  foto: string;
+  foto: File | null;
+  fotoUrl?: string;
 }
 
 interface Garantia {
@@ -83,7 +85,7 @@ export default function AdminPanel() {
     texto: '',
     viaje: '',
     rating: 5,
-    foto: '',
+    foto: null,
   });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,16 +145,34 @@ export default function AdminPanel() {
   const handleCreateTestimonio = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiFetch(API_CONFIG.endpoints.testimonios, {
+      const formData = new FormData();
+      formData.append('nombre', newTestimonio.nombre);
+      formData.append('texto', newTestimonio.texto);
+      formData.append('viaje', newTestimonio.viaje);
+      formData.append('rating', String(newTestimonio.rating));
+      formData.append('aprobado', 'true');
+      if (newTestimonio.foto) {
+        formData.append('foto', newTestimonio.foto);
+      }
+      if (newTestimonio.fotoUrl) {
+        formData.append('foto_url', newTestimonio.fotoUrl);
+      }
+
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.testimonios}`, {
         method: 'POST',
-        body: JSON.stringify(newTestimonio),
+        body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error('Error creating testimonio');
+      }
+
       setNewTestimonio({
         nombre: '',
         texto: '',
         viaje: '',
         rating: 5,
-        foto: '',
+        foto: null,
       });
       setShowTestimonioForm(false);
       loadData();
@@ -234,13 +254,11 @@ export default function AdminPanel() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">URL de Foto</label>
-            <input
-              type="url"
-              value={newTestimonio.foto}
-              onChange={(e) => setNewTestimonio({ ...newTestimonio, foto: e.target.value })}
-              placeholder="https://images.unsplash.com/..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+            <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
+            <ImageUpload
+              value={null}
+              onChange={(file) => setNewTestimonio({ ...newTestimonio, foto: file })}
+              label=""
             />
           </div>
           <div>
