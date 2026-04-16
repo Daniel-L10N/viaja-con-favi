@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Star, Clock, Tag, Shield, Users, Quote } from "lucide-react";
-import { testimonials, guarantees } from "@/lib/testimonials";
+import { guarantees } from "@/lib/testimonials";
+import { useTestimonios } from "@/hooks/useBackendData";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   clock: Clock,
@@ -13,6 +14,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export default function Confianza() {
+  const { testimonios, loading, error } = useTestimonios();
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -67,48 +70,52 @@ export default function Confianza() {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          {testimonials.map((testimonial) => (
-            <motion.div
-              key={testimonial.id}
-              variants={itemVariants}
-              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/15 transition-colors"
-            >
-              {/* Quote Icon */}
-              <Quote className="w-10 h-10 text-gold/50 mb-4" />
+          {loading ? (
+            <div className="col-span-full text-center text-white/70 py-8">Cargando testimonios...</div>
+          ) : error ? (
+            <div className="col-span-full text-center text-red-400 py-8">Error al cargar testimonios</div>
+          ) : testimonios.length === 0 ? (
+            <div className="col-span-full text-center text-white/70 py-8">No hay testimonios disponibles</div>
+          ) : (
+            testimonios.map((testimonial) => (
+              <motion.div
+                key={testimonial.id}
+                variants={itemVariants}
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/15 transition-colors"
+              >
+                <Quote className="w-10 h-10 text-gold/50 mb-4" />
 
-              {/* Stars */}
-              <div className="flex gap-1 mb-3">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-4 h-4 text-gold fill-gold"
-                  />
-                ))}
-              </div>
-
-              {/* Text */}
-              <p className="text-white/80 mb-6 italic leading-relaxed">
-                &ldquo;{testimonial.text}&rdquo;
-              </p>
-
-              {/* Author */}
-              <div className="flex items-center gap-3">
-                <Image
-                  src={testimonial.photo}
-                  alt={testimonial.name}
-                  width={48}
-                  height={48}
-                  className="rounded-full object-cover"
-                />
-                <div>
-                  <div className="text-white font-semibold">
-                    {testimonial.name}
-                  </div>
-                  <div className="text-gold text-sm">{testimonial.trip}</div>
+                <div className="flex gap-1 mb-3">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="w-4 h-4 text-gold fill-gold"
+                    />
+                  ))}
                 </div>
-              </div>
-            </motion.div>
-          ))}
+
+                <p className="text-white/80 mb-6 italic leading-relaxed">
+                  &ldquo;{testimonial.texto}&rdquo;
+                </p>
+
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={testimonial.foto || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80"}
+                    alt={testimonial.nombre}
+                    width={48}
+                    height={48}
+                    className="rounded-full object-cover"
+                  />
+                  <div>
+                    <div className="text-white font-semibold">
+                      {testimonial.nombre}
+                    </div>
+                    <div className="text-gold text-sm">{testimonial.viaje}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
         </motion.div>
 
         {/* Guarantees */}
